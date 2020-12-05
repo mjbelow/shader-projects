@@ -1,7 +1,6 @@
 #!/bin/sh
 
 cat << EOF > "$1.glsl"
-#version 120
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform vec4 iMouse;
