@@ -441,9 +441,15 @@ void main(void){
     vec2 p = uv*5. - vec2(0, -1)*iTime/8.;
     #endif
     
-    // p = uv*5. - vec2(sin(iTime)+(iTime*.1), cos(iTime)-(iTime*.0));
-    p = uv*5. - vec2(sin(iTime)+(iTime*.01), cos(iTime)+(iTime*.01));
-    p = uv*10.;
+    float amt = 4.0;
+    
+    float wave = (cos(iTime / amt) * (-1 * amt)) + amt + 4;
+    
+    // wave = amt - abs(mod(iTime,(2 * amt)) - amt);
+    
+    p = uv*10. - vec2(sin(iTime)*wave, cos(iTime)*wave);
+    // p = uv*10. - vec2(sin(iTime)+(10), cos(iTime)+(10));
+    //p = uv*10.;
 
     // Perform the triangulation: This function returns the triangle object struct, which consists of the
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
@@ -469,23 +475,32 @@ void main(void){
     else col = screen(vec3(.8), rainbow);
     
     
-    if(tri.id.y == 8) col = vec3(0);
-    else if(tri.id.y == 7) col = vec3(0.0625 * 1);
-    else if(tri.id.y == 6) col = vec3(0.0625 * 2);
-    else if(tri.id.y == 5) col = vec3(0.0625 * 3);
-    else if(tri.id.y == 4) col = vec3(0.0625 * 4);
-    else if(tri.id.y == 3) col = vec3(0.0625 * 5);
-    else if(tri.id.y == 2) col = vec3(0.0625 * 6);
-    else if(tri.id.y == 1) col = vec3(0.0625 * 7);
-    else if(tri.id.y == 0) col = vec3(0.0625 * 8);
-    else if(tri.id.y == -1) col = vec3(0.0625 * 9);
-    else if(tri.id.y == -2) col = vec3(0.0625 * 10);
-    else if(tri.id.y == -3) col = vec3(0.0625 * 11);
-    else if(tri.id.y == -4) col = vec3(0.0625 * 12);
-    else if(tri.id.y == -5) col = vec3(0.0625 * 13);
-    else if(tri.id.y == -6) col = vec3(0.0625 * 14);
-    else if(tri.id.y == -7) col = vec3(0.0625 * 15);
-    else if(tri.id.y == -8) col = vec3(0.0625 * 16);
+    // if(abs(tri.id.y) == 8) col = vec3(0);
+    // else if(abs(tri.id.y) == 7) col = vec3(1 / 8. * 1);
+    // else if(abs(tri.id.y) == 6) col = vec3(1 / 8. * 2);
+    // else if(abs(tri.id.y) == 5) col = vec3(1 / 8. * 3);
+    // else if(abs(tri.id.y) == 4) col = vec3(1 / 8. * 4);
+    // else if(abs(tri.id.y) == 3) col = vec3(1 / 8. * 5);
+    // else if(abs(tri.id.y) == 2) col = vec3(1 / 8. * 6);
+    // else if(abs(tri.id.y) == 1) col = vec3(1 / 8. * 7);
+    // else if(tri.id.y == 0) col = vec3(1);
+    
+    // col = vec3(0);
+    
+    
+    for(int x = 0; x <= 10; x++)
+    {
+        for(int y = 0; y <= 10; y++)
+        {
+            if(abs(tri.id.x) == 10-x)
+            {
+                if(abs(tri.id.y) == 10-y)
+                {
+                    col = vec3(1 / 10. * ((x+y)/2.));
+                }
+            }
+        }
+    }
     
     // Triangle borders.
     vec3 lCol = vec3(1-(gl_FragCoord.xy/iResolution.xy).y);
