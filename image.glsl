@@ -76,7 +76,7 @@ uniform float iTime;
 
 // Inscribed circle inclusion. Excluding will make the example less exciting, but easier to inspect 
 // the mesh constuction.
-#define INCIRCLES
+//#define INCIRCLES
 
 // A visual aid to show the physical square grid.
 //#define SHOW_GRID_CELLS
