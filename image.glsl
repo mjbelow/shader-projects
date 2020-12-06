@@ -432,116 +432,41 @@ void main(void){
     
     
  
-    // Cell color, based on the four triangle arrangements: Top-left, top-right, bottom-left and bottom-right.
-    vec3 cellCol;
-    
-    if(tri.cID.x == 3.) cellCol = vec3(1, 1.3, .6); // Green.
-    else if(tri.cID.x == 2.) cellCol = vec3(1.4, 1, .6); // Orangey brown.
-    else if(tri.cID.x == 1.) cellCol = vec3(.6, 1, 1.4); // Blue.
-    else cellCol = vec3(1.4, .7, .8); // Pinkish red.
-    
-    //if(hash21(tri.id)>.4) cellCol = grey(cellCol);
-    
-    #if PALETTE==0
-    // The less complicated default palette. For amateurs like myself, fewer colors are easier to work with. :)
-    if(tri.cID.x != 3.) cellCol = grey(cellCol); // Greyscale.
-    else cellCol = vec3(1.3, .2, .1); // Redish. //vec3(1.2, .1, .15); //vec3(.8, .28, .05)
-    #elif PALETTE==2
-    if(tri.cID.x == 1. || tri.cID.x == 3.) cellCol = grey(cellCol);
-    #elif PALETTE==3
-    cellCol = grey(cellCol);
-    #endif
-    
-    // The triangle cell background.
-    // Mixing in a bit of the edge color with the cell color to give the impression that some mild lighting 
-    // is occurring.
-    vec3 bg = mix(cellCol, vec3(1, .9, .7), .25);
-    // Mutliplying by a factor of the triangular distance for a bit of shading.
-    bg *= (triDist*.7 + .3)*1.55;
-    
-    // Start the layering process by initating to the triangle cell background.
-    vec3 col = bg;
-    
-        
-    // Cell background lines.
-    //col *= clamp(sin((rot2((id).x)*p).x*6.283*20.)*1.5 + 1.35, 0., 1.)*.5 + .5;
-    //col *= clamp(sin((line)*6.283*16.)*1.5 + 1.35, 0., 1.)*.5 + .5;
-    float hatch = clamp(sin((p.y - p.x)*6.283*14.)*1.5 + 1.35, 0., 1.);
-    //float hRnd = hash21(floor(p/5.*240.) + .73);
-    //if(hRnd>.8) hatch = hRnd; // Slight, randomization of the diagonal lines.  
-    col *= hatch*.5 + .5; // Combining the background with the lines.
 
 
-    #ifdef BG_MESH
-    // Finer background layer mesh.
-    // Cover some of the triangle cells with a smaller triangulated mesh. Because of the layering order,
-    // it gives the impression that the mesh is behind the top layer, which in turn gives the image
-    // some faux depth. Comment this block out for a cleaner, but less interesting, look.
-	if(tri.cID.x != 3. && hash21(tri.id)>.5){ // if(hash21(id).x>.5), etc.    
-         
-        const float scF = 2.5; // Second mesh scaling factor.
-        triObj tri2 = triangulate(p*scF);
-
-        float point2 = min(min(length(tri2.p0/2.5), length(tri2.p1/2.5)), length(tri2.p2/2.5)) - .04;
-        vec3 inC2;
-        inC2.xy = inCent(tri2.p0, tri2.p1, tri2.p2);
-
-        d0 = (distLine(tri2.p0, tri2.p1));
-        d1 = (distLine(tri2.p1, tri2.p2));
-        d2 = (distLine(tri2.p2, tri2.p0));
-        float triDist2 = min(min(d0, d1), d2)/scF - .015;
-
-        // Triangle borders.
-        col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist2))*.5);
-        col = mix(col, vec3(0), 1. - smoothstep(0., .015, triDist2 - .02));
-        vec3 lCol2 = vec3(1, .85, .4)*.8;
-        #ifdef GREY_LINES
-        lCol2 = grey(lCol2);
-        #endif
-        col = mix(col, lCol2, 1. - smoothstep(0., .015, triDist2));
-
-		// Vertices.
-        col = mix(col, vec3(0), 1. - smoothstep(0., .01, point2 - .02));        
-        col = mix(col, vec3(1, .9, .7), 1. - smoothstep(0., .01, point2));
-	}
-    #endif
+    vec3 col = vec3(1);
+    
+    
     
 
-    #ifdef INCIRCLES
+    //#ifdef INCIRCLES
     // Inner circles.
     //if(hash21(tri.id)>.35){ // Leave some cells empty.
-    vec2 a = inC.xy;
     // Polar lines around the circle edges.
-    float dir = (tri.cID.x==0. || tri.cID.x==2.)? -1. : 1.;
-    float ang = mod(atan(a.y, a.x) + dir*iTime/2., 3.14159*2.);
-    float hLines = clamp(sin(ang*(floor((inC.z - .055)*69.) + 3.))*1.5 + 1.35, 0., 1.)*.7 + .3;
     // Innercircle.
-    float inPoint = length(inC.xy) - inC.z + .055;
-    col = mix(col, vec3(0), (1. - smoothstep(0., .1, inPoint - .0))*.5);
+    float inPoint = length(inC.xy) - .05;
+    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, inPoint - .0))*.5);
     col = mix(col, vec3(0), 1. - smoothstep(0., .01, inPoint - .02));
-    vec3 iC = cellCol*max(1. - length(inC.xy)/inC.z*.7, 0.);
+    //col = vec3(uv.x,0,0);
     //iC *= clamp(cos(length(inC.xy)*6.283*16.)*1. + .85, 0., 1.)*.15 + .85; // Subtle concentric pattern.
-	col = mix(col, mix(vec3(1, .9, .7), iC, .4)*hLines, 1. - smoothstep(0., .01, inPoint));
-    col = mix(col, vec3(0), (1. - smoothstep(0., .01, inPoint - .02 + .08))*.9);
-    col = mix(col, iC, 1. - smoothstep(0., .01, inPoint + .08));
-    // Innercircle points.
-    inPoint = length(inC.xy) - .025;
-    col = mix(col, vec3(0), 1. - smoothstep(0., .01, inPoint - .02));
-	col = mix(col, mix(vec3(1, .9, .7), cellCol, .25), 1. - smoothstep(0., .01, inPoint));
 	//} 
-    #endif
+    //#endif
     
     
-   
+    if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0); // Greyscale.
+    //else if(tri.cID.y == 1.) col = vec3(0,1,1); // Greyscale.
+    //else if(tri.cID.y == 2.) col = vec3(0,1,0); // Greyscale.
+    //else if(tri.cID.y == 3.) col = vec3(1,1,0); // Greyscale.
+    //else col = vec3(.8, .28, .05);
     
     // Triangle borders.
-    vec3 lCol = vec3(1, .8, .3);//*min(.8 + triDist*16., 1.); // Line color.
+    vec3 lCol = vec3(.5) * col;//*min(.8 + triDist*16., 1.); // Line color.
     #ifdef GREY_LINES 
     lCol = grey(lCol);
     #endif
     triDist -= .0175;
-    col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist))*.5);
-    col = mix(col, vec3(0), 1. - smoothstep(0., .015, triDist - .02));
+    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist))*.5);
+    //col = mix(col, vec3(0), 1. - smoothstep(0., .015, triDist - .02));
     col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));//vec3(1, .8, .25)
 
     //col = mix(col, (vec3(0)), (1. - smoothstep(0., .01, triDist + .02))*.35);
