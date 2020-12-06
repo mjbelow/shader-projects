@@ -76,11 +76,20 @@ uniform float iTime;
 
 // Inscribed circle inclusion. Excluding will make the example less exciting, but easier to inspect 
 // the mesh constuction.
-//#define INCIRCLES
+#define INCIRCLES
 
 // A visual aid to show the physical square grid.
-//#define SHOW_GRID_CELLS
+#define SHOW_GRID_CELLS
+#define RAINBOW_GRID
 
+// Other options
+//#define SHOW_VERTICES
+//#define VIGNETTE
+//#define GAMMA_CORRECTION
+//#define TRI_SHADOW
+//#define TRI_BORDER
+#define TRI_OUTLINE
+//#define TRI_OUTLINE_SIMPLE
 
 // 2x2 matrix rotation. Note the absence of "cos." It's there, but in disguise, and comes courtesy
 // of Fabrice Neyret's "ouside the box" thinking. :)
@@ -413,14 +422,15 @@ vec3 colorBurn(vec3 a, vec3 b)
  return vec3(1) - ((vec3(1) - b) / a);   
 }
 
+
+
 void main(void){
 
     // Screen coordinates. Note that I've put restrictions on the resolution. I coded this for
     // the 800 by 450 canvas, so the image looks a little bloated in fullscreen. Therefore, I've
     // attempted to counter that by restricting is to 800 pixels... It kind of works. :)
 	vec2 uv = (gl_FragCoord.xy - iResolution.xy*.5)/clamp(iResolution.y, 350., 800.);
-    uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y;
-    //uv = gl_FragCoord.xy/iResolution.x;
+    
     
     #ifdef FIXED
     // Basic diagonal scrolling.
@@ -448,8 +458,8 @@ void main(void){
     float triDist = min(min(d0, d1), d2);
     
     
- 	vec3 rainbow = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
-
+    vec3 rainbow = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
+ 
 
     vec3 col = vec3(1);
     if(tri.cID.y == 0.) col = screen(vec3(.2), rainbow);
@@ -460,13 +470,37 @@ void main(void){
     
     // Triangle borders.
     vec3 lCol = multiply(vec3(1), rainbow);
-
+    #ifdef GREY_LINES 
+    lCol = grey(lCol);
+    #endif
     triDist -= .0175;
-    col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));
+    #ifdef TRI_SHADOW
+    col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist))*.5);
+    #endif
+    #ifdef TRI_BORDER
+    col = mix(col, vec3(0), 1. - smoothstep(0., .015, triDist - .02));
+    #endif
+    #ifdef TRI_OUTLINE
+    #ifndef TRI_OUTLINE_SIMPLE
+    col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));//vec3(1, .8, .25)
+    #elif defined TRI_OUTLINE_SIMPLE
 
-
+    col = mix(col, (vec3(0)), (1. - smoothstep(0., .01, triDist + .02))*.35);
+    #endif
+    #endif
+    
+    #ifdef SHOW_VERTICES
+    // Triangle vertices.
+    float verts = min(min(length(tri.p0), length(tri.p1)), length(tri.p2)) - .06;
+    col = mix(col, vec3(0), (1. - smoothstep(0., .1, verts))*.35);
+    col = mix(col, vec3(0), 1. - smoothstep(0., .01, verts - .02));
+	col = mix(col, vec3(1, .9, .7), 1. - smoothstep(0., .01, verts));
+    verts += .05;
+    col = mix(col, vec3(0), 1. - smoothstep(0., .01, verts - .02));
+	col = mix(col, vec3(1, .9, .7), 1. - smoothstep(0., .01, verts)); 
+    #endif
  
-    //#ifdef SHOW_GRID_CELLS
+    #ifdef SHOW_GRID_CELLS
     // Cell borders: If you take a look at the triangles overlapping any individual square cell, 
     // you'll see that several partial triangles contribute, and the vertices that make up each 
     // triangle span the 8 surrounding cells. This is the reason why you have to test for
@@ -475,12 +509,25 @@ void main(void){
     float bord = max(q.x, q.y) - .5;
     bord = max(bord, -(bord + .01));
     
-    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, bord))*.35);
+    #ifdef RAINBOW_GRID
     col = mix(col, colorDodge(vec3(.2), rainbow), (1. - smoothstep(0., .01, bord - .007)));
-    //col = mix(col, vec3(1), (1. - smoothstep(0., .01, bord))*.75);
-    //#endif
+    #else
+    col = mix(col, vec3(0), (1. - smoothstep(0., .1, bord))*.35);
+    col = mix(col, vec3(0), (1. - smoothstep(0., .01, bord - .02)));
+    col = mix(col, vec3(1), (1. - smoothstep(0., .01, bord))*.75);
+    #endif
+    #endif
        
-
-	gl_FragColor = vec4(col,1);
+    #ifdef VIGNETTE
+    // Vignette.
+    uv = gl_FragCoord.xy/iResolution.xy;
+    col = mix(col, vec3(0), (1. - pow(16.*uv.x*uv.y*(1.-uv.x)*(1.-uv.y), 0.125*.5)));
+    #endif
     
+    #ifdef GAMMA_CORRECTION
+    // Rough gamma correction.
+	gl_FragColor = vec4(sqrt(max(col, 0.)), 1);
+    #else
+    gl_FragColor = vec4(col, 1);
+    #endif
 }
