@@ -400,7 +400,8 @@ void main(void){
     // the 800 by 450 canvas, so the image looks a little bloated in fullscreen. Therefore, I've
     // attempted to counter that by restricting is to 800 pixels... It kind of works. :)
 	vec2 uv = (gl_FragCoord.xy - iResolution.xy*.5)/clamp(iResolution.y, 350., 800.);
-    
+    uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y;
+    //uv = gl_FragCoord.xy/iResolution.x;
     
     #ifdef FIXED
     // Basic diagonal scrolling.
@@ -411,7 +412,7 @@ void main(void){
     vec2 p = uv*5. - vec2(0, -1)*iTime/8.;
     #endif
     
-    p = uv*5.;
+    p = uv*10.;
 
     // Perform the triangulation: This function returns the triangle object struct, which consists of the
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
@@ -431,13 +432,12 @@ void main(void){
 
 
     vec3 col = vec3(1);
-    //if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0);
     if(
-        tri.id.x == 0.
-        &&
+        tri.id.y < 0.
+        //&&
         //tri.cID.x == 0.
         //&&
-        tri.id.y == 1.
+        //tri.id.y == 1.
         //&&
         //tri.cID.y == 0.
       
