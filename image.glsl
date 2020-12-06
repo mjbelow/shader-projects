@@ -437,19 +437,9 @@ void main(void){
     // Triangle borders.
     vec3 lCol = vec3(.5);// * col;
 
-    triDist -= .0175;
+    //triDist -= .0175;
     col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));
 
-    
-    
-    // Triangle vertices.
-    float verts = min(min(length(tri.p0), length(tri.p1)), length(tri.p2)) - .06;
-    col = mix(col, vec3(0), (1. - smoothstep(0., .1, verts))*.35);
-    col = mix(col, vec3(0), 1. - smoothstep(0., .01, verts - .02));
-	col = mix(col, vec3(1, .9, .7), 1. - smoothstep(0., .01, verts));
-    verts += .05;
-    col = mix(col, vec3(0), 1. - smoothstep(0., .01, verts - .02));
-	col = mix(col, vec3(1, .9, .7), 1. - smoothstep(0., .01, verts)); 
 
  
     #ifdef SHOW_GRID_CELLS
@@ -466,13 +456,7 @@ void main(void){
     col = mix(col, vec3(1), (1. - smoothstep(0., .01, bord))*.75);
     #endif
        
-    
-    // Vignette.
-    uv = gl_FragCoord.xy/iResolution.xy;
-    col = mix(col, vec3(0), (1. - pow(16.*uv.x*uv.y*(1.-uv.x)*(1.-uv.y), 0.125*.5)));
 
-    
-    // Rough gamma correction.
-	gl_FragColor = vec4(sqrt(max(col, 0.)), 1);
+	gl_FragColor = vec4(col,1);
     
 }
