@@ -431,7 +431,17 @@ void main(void){
 
 
     vec3 col = vec3(1);
-    if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0);
+    //if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0);
+    if(
+        tri.id.x == 0.
+        &&
+        //tri.cID.x == 0.
+        //&&
+        tri.id.y == 1.
+        //&&
+        //tri.cID.y == 0.
+      
+      ) col = vec3(0);
     
     
     // Triangle borders.
