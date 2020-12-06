@@ -79,7 +79,7 @@ uniform float iTime;
 #define INCIRCLES
 
 // A visual aid to show the physical square grid.
-#define SHOW_GRID_CELLS
+//#define SHOW_GRID_CELLS
 #define RAINBOW_GRID
 
 // Other options
@@ -441,8 +441,9 @@ void main(void){
     vec2 p = uv*5. - vec2(0, -1)*iTime/8.;
     #endif
     
-    //p = uv*5.;
-    p = uv*5. - vec2(-.5,.5)*iTime/8.;
+    // p = uv*5. - vec2(sin(iTime)+(iTime*.1), cos(iTime)-(iTime*.0));
+    p = uv*5. - vec2(sin(iTime)+(iTime*.01), cos(iTime)+(iTime*.01));
+    p = uv*10.;
 
     // Perform the triangulation: This function returns the triangle object struct, which consists of the
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
@@ -468,12 +469,30 @@ void main(void){
     else col = screen(vec3(.8), rainbow);
     
     
+    if(tri.id.y == 8) col = vec3(0);
+    else if(tri.id.y == 7) col = vec3(0.0625 * 1);
+    else if(tri.id.y == 6) col = vec3(0.0625 * 2);
+    else if(tri.id.y == 5) col = vec3(0.0625 * 3);
+    else if(tri.id.y == 4) col = vec3(0.0625 * 4);
+    else if(tri.id.y == 3) col = vec3(0.0625 * 5);
+    else if(tri.id.y == 2) col = vec3(0.0625 * 6);
+    else if(tri.id.y == 1) col = vec3(0.0625 * 7);
+    else if(tri.id.y == 0) col = vec3(0.0625 * 8);
+    else if(tri.id.y == -1) col = vec3(0.0625 * 9);
+    else if(tri.id.y == -2) col = vec3(0.0625 * 10);
+    else if(tri.id.y == -3) col = vec3(0.0625 * 11);
+    else if(tri.id.y == -4) col = vec3(0.0625 * 12);
+    else if(tri.id.y == -5) col = vec3(0.0625 * 13);
+    else if(tri.id.y == -6) col = vec3(0.0625 * 14);
+    else if(tri.id.y == -7) col = vec3(0.0625 * 15);
+    else if(tri.id.y == -8) col = vec3(0.0625 * 16);
+    
     // Triangle borders.
-    vec3 lCol = multiply(vec3(1), rainbow);
+    vec3 lCol = vec3(1-(gl_FragCoord.xy/iResolution.xy).y);
     #ifdef GREY_LINES 
     lCol = grey(lCol);
     #endif
-    triDist -= .0175;
+    triDist -= .0075;
     #ifdef TRI_SHADOW
     col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist))*.5);
     #endif
