@@ -25,10 +25,21 @@ uniform float iTime;
 	#define SPEED 1.5
 #endif
 
+vec4 multiply(vec4 a, vec4 b)
+{
+    return a * b;
+}
+
+vec4 screen(vec4 a, vec4 b)
+{
+    return 1 - ( (1 - a) * (1 - b) );
+}
+
 void main(void)
 {
 	const mat3 p = mat3(13.323122,23.5112,21.71123,21.1212,28.7312,11.9312,21.8112,14.7212,61.3934);
-	vec2 uv = iMouse.xy/iResolution.xy + vec2(1.,iResolution.y/iResolution.x)*gl_FragCoord.xy / iResolution.xy;
+	vec2 uv = iResolution.xy + vec2(1.,1920/1080)*gl_FragCoord.xy / iResolution.xy;
+        vec4 tex0 = texture2D(iChannel0, vec2(uv.x, uv.y*-1));
 	vec3 acc = vec3(0.0);
 	float dof = 5.*sin(iTime*.1);
 	for (int i=0;i<LAYERS;i++) {
@@ -46,4 +57,5 @@ void main(void)
 		acc += vec3(smoothstep(edge,-edge,d)*(r.x/(1.+.02*fi*DEPTH)));
 	}
 	gl_FragColor = vec4(vec3(acc),1.0);
+        gl_FragColor = screen(tex0, gl_FragColor);
 }
