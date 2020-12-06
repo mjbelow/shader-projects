@@ -417,11 +417,7 @@ void main(void){
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
     triObj tri = triangulate(p);
     
-    // Use the three triangle vertices to calculate the inner circle center.
-    vec3 inC;
-    inC.xy = inCent(tri.p0, tri.p1, tri.p2); // Inner circle center.
-    inC.z = inCentRad(tri.p0, tri.p1, tri.p2); // Maximum radius to the three sides.
-    
+
     // Using the three vertices to calculate the triangle distance value -- which can be used for shading
     // triangle edge outlines, etc.
     float d0, d1, d2;
@@ -436,21 +432,7 @@ void main(void){
 
     vec3 col = vec3(1);
     
-    
-    
 
-    //#ifdef INCIRCLES
-    // Inner circles.
-    //if(hash21(tri.id)>.35){ // Leave some cells empty.
-    // Polar lines around the circle edges.
-    // Innercircle.
-    float inPoint = length(inC.xy) - .05;
-    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, inPoint - .0))*.5);
-    col = mix(col, vec3(0), 1. - smoothstep(0., .01, inPoint - .02));
-    //col = vec3(uv.x,0,0);
-    //iC *= clamp(cos(length(inC.xy)*6.283*16.)*1. + .85, 0., 1.)*.15 + .85; // Subtle concentric pattern.
-	//} 
-    //#endif
     
     
     if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0); // Greyscale.
@@ -460,16 +442,10 @@ void main(void){
     //else col = vec3(.8, .28, .05);
     
     // Triangle borders.
-    vec3 lCol = vec3(.5) * col;//*min(.8 + triDist*16., 1.); // Line color.
-    #ifdef GREY_LINES 
-    lCol = grey(lCol);
-    #endif
-    triDist -= .0175;
-    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, triDist))*.5);
-    //col = mix(col, vec3(0), 1. - smoothstep(0., .015, triDist - .02));
-    col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));//vec3(1, .8, .25)
+    vec3 lCol = vec3(.5);// * col;
 
-    //col = mix(col, (vec3(0)), (1. - smoothstep(0., .01, triDist + .02))*.35);
+    triDist -= .0175;
+    col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));
 
     
     
