@@ -403,6 +403,16 @@ vec3 screen(vec3 a, vec3 b)
  return vec3(1) - ( (vec3(1)-a) * (vec3(1)-b) );
 }
 
+vec3 colorDodge(vec3 a, vec3 b)
+{
+ return b / (vec3(1) - a);
+}
+
+vec3 colorBurn(vec3 a, vec3 b)
+{
+ return vec3(1) - ((vec3(1) - b) / a);   
+}
+
 void main(void){
 
     // Screen coordinates. Note that I've put restrictions on the resolution. I coded this for
@@ -448,7 +458,7 @@ void main(void){
     
     
     // Triangle borders.
-    vec3 lCol = multiply(vec3(.6), rainbow);
+    vec3 lCol = colorBurn(vec3(.8), rainbow);
 
     triDist -= .0175;
     col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));
