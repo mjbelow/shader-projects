@@ -425,7 +425,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     vec2 p = uv*5. - vec2(0, -1)*iTime/8.;
     #endif
     
-    p = uv*5.;
+    //p = uv*5.;
+    p = uv*5. - vec2(-.5,.5)*iTime/8.;
 
     // Perform the triangulation: This function returns the triangle object struct, which consists of the
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
@@ -452,14 +453,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     
     
     // Triangle borders.
-    vec3 lCol = colorBurn(vec3(.8), rainbow);
+    vec3 lCol = multiply(vec3(1), rainbow);
 
     triDist -= .0175;
     col = mix(col, lCol, 1. - smoothstep(0., .015, triDist));
 
 
  
-    #ifdef SHOW_GRID_CELLS
+    //#ifdef SHOW_GRID_CELLS
     // Cell borders: If you take a look at the triangles overlapping any individual square cell, 
     // you'll see that several partial triangles contribute, and the vertices that make up each 
     // triangle span the 8 surrounding cells. This is the reason why you have to test for
@@ -468,10 +469,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float bord = max(q.x, q.y) - .5;
     bord = max(bord, -(bord + .01));
     
-    col = mix(col, vec3(0), (1. - smoothstep(0., .1, bord))*.35);
-    col = mix(col, vec3(0), (1. - smoothstep(0., .01, bord - .02)));
-    col = mix(col, vec3(1), (1. - smoothstep(0., .01, bord))*.75);
-    #endif
+    //col = mix(col, vec3(0), (1. - smoothstep(0., .1, bord))*.35);
+    col = mix(col, colorDodge(vec3(.2), rainbow), (1. - smoothstep(0., .01, bord - .007)));
+    //col = mix(col, vec3(1), (1. - smoothstep(0., .01, bord))*.75);
+    //#endif
        
 
 	fragColor = vec4(col,1);
