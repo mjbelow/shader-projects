@@ -122,7 +122,12 @@ float NetLayer(vec2 st, float n, float t) {
 void main(void)
 {
     vec2 uv = (gl_FragCoord.xy-iResolution.xy*.5)/iResolution.y;
+    //uv = gl_TexCoord[0].xy;
+    //uv = 1.-((gl_FragCoord.xy / iResolution.xy) * 2.);
+    
+    
 	vec2 M = iMouse.xy/iResolution.xy-.5;
+    //M = vec2(0,0);
     
     float t = iTime*.1;
     
@@ -141,12 +146,12 @@ void main(void)
         m += fade * NetLayer(st*size-M*z, i, iTime);
     }
     
-	float fft  = texelFetch( iChannel0, ivec2(.7,0), 0 ).x;
-    float glow = -uv.y*fft*2.;
+	//float fft  = texelFetch( iChannel0, ivec2(.7,0), 0 ).x;
+    //float glow = -uv.y*fft*2.;
    
     vec3 baseCol = vec3(s, cos(t*.4), -sin(t*.24))*.4+.6;
     vec3 col = baseCol*m;
-    col += baseCol*glow;
+    //col += baseCol*glow;
     
     #ifdef SIMPLE
     uv *= 10.;
