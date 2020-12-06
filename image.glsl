@@ -184,7 +184,8 @@ void main(void)
     //float glow = -uv.y*fft*2.;
    
     vec3 baseCol = .5+.5*cos(iTime*.05+vec3(0,2,4));
-    vec3 col = baseCol*m;
+    vec3 col = ((1.-baseCol)*(1.-m));
+    col = vec3(m);
     //col += baseCol*glow;
     
     #ifdef SIMPLE
@@ -198,7 +199,7 @@ void main(void)
     col *= S(0., 20., t)*S(224., 200., t);
     #endif
     
-    gl_FragColor = vec4(col,1);
+    //gl_FragColor = vec4(col,1);
     
     vec2 coord = uv * 2.0;
 
@@ -206,6 +207,8 @@ void main(void)
 
     float final = fbm(coord + motion);
         
-    gl_FragColor = mix(gl_FragColor, vec4(baseCol, 1), final);
+    gl_FragColor = mix(vec4(1), vec4(baseCol, 1), final);
+        
+    gl_FragColor = 1.-((1.-gl_FragColor) * (1.-m));
 
 }
