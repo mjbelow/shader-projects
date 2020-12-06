@@ -183,7 +183,7 @@ void main(void)
 	//float fft  = texelFetch( iChannel0, ivec2(.7,0), 0 ).x;
     //float glow = -uv.y*fft*2.;
    
-    vec3 baseCol = vec3(s, cos(t*.4), -sin(t*.24))*.4+.6;
+    vec3 baseCol = .5+.5*cos(iTime*.05+vec3(0,2,4));
     vec3 col = baseCol*m;
     //col += baseCol*glow;
     
