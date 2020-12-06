@@ -411,7 +411,7 @@ void main(void){
     vec2 p = uv*5. - vec2(0, -1)*iTime/8.;
     #endif
     
-    
+    p = uv*5.;
 
     // Perform the triangulation: This function returns the triangle object struct, which consists of the
     // three triangle vertices, the unique cell ID, and another triangle ID for coloring.
@@ -431,15 +431,8 @@ void main(void){
 
 
     vec3 col = vec3(1);
+    if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0);
     
-
-    
-    
-    if(tri.id.x == 0. && tri.cID.x == 0.) col = vec3(0); // Greyscale.
-    //else if(tri.cID.y == 1.) col = vec3(0,1,1); // Greyscale.
-    //else if(tri.cID.y == 2.) col = vec3(0,1,0); // Greyscale.
-    //else if(tri.cID.y == 3.) col = vec3(1,1,0); // Greyscale.
-    //else col = vec3(.8, .28, .05);
     
     // Triangle borders.
     vec3 lCol = vec3(.5);// * col;
