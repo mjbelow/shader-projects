@@ -48,7 +48,7 @@ void main(void)
 
     vec3 col = 0.5 + 0.5*cos(iTime-avg(uv2)+vec3(0, cycle, cycle*2.0));
 
-    col*=circle(uv2,vec2(0.5,0.5),0.25,0.05);
+    col*=smoothstep(.1,.2,vec3(sdCircle(uv2 - vec2(.5, .5),.2)));
 
     vec4 color = vec4(col, 1.0);
 
