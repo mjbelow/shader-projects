@@ -20,21 +20,25 @@ vec4 screen(vec4 a, vec4 b)
 
 }
 
+float avg(vec2 a)
+{
+    return (a.x+a.y)/2.;
+}
+
 void main(void)
 {
 
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
+    vec2 uv = gl_FragCoord.xy/iResolution.y;
+    vec2 uv2 = gl_FragCoord.xy/iResolution.xy*10.;
+
+    uv2 = mod(uv2, 1.);
 
     float cycle = PI*2.0/3.0;
 
-    vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0, cycle, cycle*2.0));
+    vec3 col = 0.5 + 0.5*cos(iTime-avg(uv2)+vec3(0, cycle, cycle*2.0));
 
-    vec4 tex0 = texture2D(iChannel0, uv);
-    vec4 tex1 = texture2D(iChannel1, uv);
+
     vec4 color = vec4(col, 1.0);
-        
-    if (tex1.r < .5 && tex1.g < .5 && tex1.b < .5)
-        gl_FragColor = screen(tex0, color);
-    else
-        gl_FragColor = multiply(tex1, color);
+
+    gl_FragColor = screen(vec4(avg(uv2)), color);
 }
