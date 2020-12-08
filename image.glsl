@@ -25,11 +25,22 @@ float avg(vec2 a)
     return (a.x+a.y)/2.;
 }
 
+float circle(vec2 uv,vec2 pos,float radius,float feather)
+{
+    vec2 uvDist=uv-pos;
+    return 1.0-smoothstep(radius-feather,radius+feather, length(uvDist));
+}
+
+float sdCircle( vec2 p, float r )
+{
+  return length(p) - r;
+}
+
 void main(void)
 {
 
-    vec2 uv = gl_FragCoord.xy/iResolution.y;
-    vec2 uv2 = gl_FragCoord.xy/iResolution.xy*10.;
+    vec2 uv = (gl_FragCoord.xy-iResolution.xy*.5)/iResolution.y;
+    vec2 uv2 = ((gl_FragCoord.xy-iResolution.xy*.5)/iResolution.xy)*10.;
 
     uv2 = mod(uv2, 1.);
 
@@ -37,8 +48,9 @@ void main(void)
 
     vec3 col = 0.5 + 0.5*cos(iTime-avg(uv2)+vec3(0, cycle, cycle*2.0));
 
+    col*=circle(uv2,vec2(0.5,0.5),0.25,0.05);
 
     vec4 color = vec4(col, 1.0);
 
-    gl_FragColor = screen(vec4(avg(uv2)), color);
+    gl_FragColor = multiply(vec4(avg(uv2)), color);
 }
