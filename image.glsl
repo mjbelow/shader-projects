@@ -42,6 +42,9 @@ void main(void)
     vec2 uv = (gl_FragCoord.xy-iResolution.xy*.5)/iResolution.y;
     vec2 uv2 = ((gl_FragCoord.xy-iResolution.xy*.5)/iResolution.xy)*10.;
 
+    if (step(mod(uv2.y, 2.),1.) == 0.)
+        uv2.x += .5;
+
     uv2 = mod(uv2, 1.);
 
     float cycle = PI*2.0/3.0;
