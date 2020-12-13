@@ -43,7 +43,7 @@ void main(void)
     bool water = false;
     vec2 uv = (gl_FragCoord.xy*2.-iResolution.xy) / iResolution.y;
     uv.y *= -1.;
-    uv = vec2(length(uv),atan(uv.y, uv.x));//carthesian to polar:
+    uv = vec2(length(uv)/2,atan(uv.y, uv.x)/3.1415/2);//carthesian to polar:
     vec2 uv2 = customRound(uv, .01);
     vec2 uv3 = uv;
     // uv3.y += iTime/30.*-1;
