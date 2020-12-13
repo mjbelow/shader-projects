@@ -41,22 +41,23 @@ void main(void)
     gl_FragColor = texture2D(iChannel0, uv);
     */
     bool water = false;
-    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 uv = (gl_FragCoord.xy*2.-iResolution.xy) / iResolution.y;
     uv.y *= -1.;
-    vec2 uv2 = customRound(uv, .001);
+    uv = vec2(length(uv),atan(uv.y, uv.x));//carthesian to polar:
+    vec2 uv2 = customRound(uv, .4);
     vec2 uv3 = uv;
     // uv3.y += iTime/30.*-1;
     
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
-    	uv3.x += 0.02*cos(-iTime*2.+uv2.y*800.)*6.;
+    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*64)*5.;
         water = true;
     }
     
     gl_FragColor = texture2D(iChannel0,uv);
     
-    if(uv3.x > .4 && uv3.x < .6)
+    if(uv3.x > .4 && uv3.x < .9)
     {
         gl_FragColor = texture2D(iChannel0, uv3);
         // gl_FragColor = texture2D(iChannel0, uv2);
