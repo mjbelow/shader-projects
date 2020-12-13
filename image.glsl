@@ -51,7 +51,7 @@ void main(void)
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
-    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*4)*20.;
+    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*.5)*40.;
         water = true;
     }
     
