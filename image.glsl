@@ -1,4 +1,3 @@
-#version 120
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform vec4 iMouse;
@@ -46,7 +45,7 @@ void main(void)
     uv.y *= -1.;
     vec2 uv2 = customRound(uv, .004);
     
-    if (uv.x > .4 && uv.x < .6)
+    // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
         water = true;
@@ -54,7 +53,7 @@ void main(void)
     
     gl_FragColor = texture2D(iChannel0,uv);
     
-    if (water)
+    if(uv2.x > .4 && uv2.x < .6)
     {
         gl_FragColor = texture2D(iChannel0,uv2);
         gl_FragColor.rg *= vec2(.25,.5);
