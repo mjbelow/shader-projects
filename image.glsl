@@ -45,6 +45,7 @@ void main(void)
     uv.y *= -1.;
     vec2 uv2 = customRound(uv, .004);
     vec2 uv3 = uv;
+    uv3.y += iTime/30.;
     
     // if (uv.x > .4 && uv.x < .6)
     {
@@ -58,7 +59,7 @@ void main(void)
     if(uv3.x > .4 && uv3.x < .6)
     {
         gl_FragColor = texture2D(iChannel0, uv3);
-        gl_FragColor = texture2D(iChannel0, uv2);
+        // gl_FragColor = texture2D(iChannel0, uv2);
         gl_FragColor.rg *= vec2(.25,.5);
     }
 }
