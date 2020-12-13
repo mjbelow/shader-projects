@@ -44,10 +44,11 @@ void main(void)
     bool water = false;
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
     uv.y *= -1.;
-
+    vec2 uv2 = customRound(uv, .04);
+    
     if (uv.x > .4 && uv.x < .6)
     {
-    	uv.x += 0.02*cos(-iTime*4.+uv.y*64.);
+    	uv.x += 0.02*cos(-iTime*4.+uv2.y*64.);
         water = true;
     }
     
