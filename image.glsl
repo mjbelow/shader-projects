@@ -45,7 +45,7 @@ void main(void)
     uv.y *= -1.;
     vec2 uv2 = customRound(uv, .004);
     vec2 uv3 = uv;
-    uv3.y += iTime/30.;
+    uv3.y += iTime/30.*-1;
     
     // if (uv.x > .4 && uv.x < .6)
     {
