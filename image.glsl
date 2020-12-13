@@ -44,18 +44,20 @@ void main(void)
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
     uv.y *= -1.;
     vec2 uv2 = customRound(uv, .004);
+    vec2 uv3 = uv;
     
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
+    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*64.);
         water = true;
     }
     
     gl_FragColor = texture2D(iChannel0,uv);
     
-    if(uv2.x > .4 && uv2.x < .6)
+    if(uv3.x > .4 && uv3.x < .6)
     {
-        gl_FragColor = texture2D(iChannel0,uv2);
+        gl_FragColor = texture2D(iChannel0, uv3);
         gl_FragColor.rg *= vec2(.25,.5);
     }
 }
