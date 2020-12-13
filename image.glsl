@@ -43,7 +43,7 @@ void main(void)
     bool water = false;
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
     uv.y *= -1.;
-    vec2 uv2 = customRound(uv, .04);
+    vec2 uv2 = customRound(uv, .008);
     vec2 uv3 = uv;
     // uv3.y += iTime/30.*-1;
     
