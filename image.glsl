@@ -58,6 +58,7 @@ void main(void)
     if(uv3.x > .4 && uv3.x < .6)
     {
         gl_FragColor = texture2D(iChannel0, uv3);
+        gl_FragColor = texture2D(iChannel0, uv2);
         gl_FragColor.rg *= vec2(.25,.5);
     }
 }
