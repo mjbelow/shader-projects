@@ -43,7 +43,7 @@ void main(void)
     bool water = false;
     vec2 uv = (gl_FragCoord.xy*2.-iResolution.xy) / iResolution.y;
     uv.y *= -1.;
-    uv = vec2(length(uv)/2,atan(uv.y, uv.x)/pow(3.1415,2)-iTime);//carthesian to polar:
+    uv = vec2(length(uv)/2,atan(uv.y, uv.x)/3.1415);//carthesian to polar:
     vec2 uv2 = customRound(uv, .01);
     vec2 uv3 = uv;
     // uv3.y += iTime/30.*-1;
@@ -51,16 +51,16 @@ void main(void)
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
-    	uv3.x += 0.02*cos(-iTime*4.)*20.;
+    	uv3.x += 0.02*tan(-iTime*2.)*20.;
         water = true;
     }
     
-    gl_FragColor = texture2D(iChannel0,uv);
+    gl_FragColor = vec4(uv.y);
     
     if(uv3.x > .4 && uv3.x < .6)
     {
-        gl_FragColor = texture2D(iChannel0, uv3);
-        gl_FragColor = texture2D(iChannel0, uv2);
+        gl_FragColor = vec4(uv.x);
+        // gl_FragColor = texture2D(iChannel0, uv2);
         gl_FragColor.rg *= vec2(.25,.5);
     }
 }
