@@ -51,13 +51,13 @@ void main(void)
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
-    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*64)*5.;
+    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*64)*20.;
         water = true;
     }
     
     gl_FragColor = texture2D(iChannel0,uv);
     
-    if(uv3.x > .4 && uv3.x < .9)
+    if(uv3.x > .4 && uv3.x < .6)
     {
         gl_FragColor = texture2D(iChannel0, uv3);
         // gl_FragColor = texture2D(iChannel0, uv2);
