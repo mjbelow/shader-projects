@@ -44,14 +44,14 @@ void main(void)
     vec2 uv = (gl_FragCoord.xy*2.-iResolution.xy) / iResolution.y;
     uv.y *= -1.;
     uv = vec2(length(uv),atan(uv.y, uv.x));//carthesian to polar:
-    vec2 uv2 = customRound(uv, .4);
+    vec2 uv2 = customRound(uv, .01);
     vec2 uv3 = uv;
     // uv3.y += iTime/30.*-1;
     
     // if (uv.x > .4 && uv.x < .6)
     {
     	uv2.x += 0.02*cos(-iTime*4.+uv2.y*64.);
-    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*64)*20.;
+    	uv3.x += 0.02*cos(-iTime*4.+uv2.y*4)*20.;
         water = true;
     }
     
