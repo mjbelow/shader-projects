@@ -52,7 +52,7 @@ float my_smoothstep2( float a, float b, float x )
     //return clamp(x, 0., 1.);
     x = max(0., min(1., (x-a)/(b-a)));
     
-    x = customRound(x, .1);
+    //x = customRound(x, .1);
     
     return x;
 }
@@ -61,9 +61,9 @@ float my_smoothstep2( float a, float b, float x )
 float my_smoothstep( float a, float b, float x )
 {
     x = my_smoothstep2(a, b, x);
-    //x = x*x*(3.0-2.0*x);
+    x = x*x*(3.0-2.0*x);
     
-    x = customRound(x, .1);
+    //x = customRound(x, .1);
     
     return x;
 }
@@ -87,10 +87,10 @@ void main(void)
     //vec2 uv = gl_FragCoord.xy/iResolution.xy;
     
     vec2 a = vec2(0.,0);
-    vec2 b = vec2(.0, 0);
-    vec2 c = vec2(.0, .5);
+    vec2 b = vec2(.5, 0);
+    vec2 c = vec2(.5, .5);
     
-    float l1 = Line(uv, a, a);
+    float l1 = Line(uv, a, b);
     float l2 = Line(uv, b, c);
     float l3 = Line(uv, c, a);
 
@@ -102,11 +102,14 @@ void main(void)
     
     // Time varying pixel color
     
-    if (l1 == .1)
-    	col = vec3(.5+.5*cos(iTime + vec3(0,2,4)));
+    vec3 rainbow = .5+.5*cos(iTime + vec3(0,2,4));
+    
+    if (l1 <= .01 || l2 <= .01 || l3 <= .01)
+    	col = vec3(rainbow);
     else
-        col = vec3(0);
+        col = vec3((l1 + l2 + l3)/3. * rainbow);
 
+    
 
     // Output to screen
     gl_FragColor = vec4(col,1.0);
