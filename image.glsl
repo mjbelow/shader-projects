@@ -86,7 +86,7 @@ void main(void)
     vec2 uv = (gl_FragCoord.xy - .5 * iResolution.xy) / iResolution.y;
     //vec2 uv = gl_FragCoord.xy/iResolution.xy;
     
-    vec2 a = vec2(-.5,0);
+    vec2 a = vec2(0.,0);
     vec2 b = vec2(.0, 0);
     vec2 c = vec2(.0, .5);
     
@@ -96,17 +96,17 @@ void main(void)
 
 
     //vec3 col = vec3(l1 + l2 + l3);
-    vec3 col = vec3(l1);
+    vec3 col;// = vec3(l1);
     //if (l1 == 1.)
         //col = vec3(1);
     
     // Time varying pixel color
-    /*
-    if (l1 >= .01 || l2 >= .02 || l3 == 1.)
+    
+    if (l1 == .1)
     	col = vec3(.5+.5*cos(iTime + vec3(0,2,4)));
     else
         col = vec3(0);
-*/
+
 
     // Output to screen
     gl_FragColor = vec4(col,1.0);
