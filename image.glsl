@@ -10,6 +10,9 @@ uniform float iTime;
 #define POINT_SIZE 3.0
 #define PI 3.1419
 
+#define S(a, b, d) smoothstep(a, b, d)
+#define s(d, a) step(d, a)
+
 vec4 grid(vec2 uv)
 {
     float pixelSize = fwidth(uv.x);
@@ -26,6 +29,24 @@ vec4 grid(vec2 uv)
         + mainAxes;
     
     return result * 0.5;
+}
+
+float DistLine(vec2 p, vec2 a, vec2 b)
+{
+ 	vec2 pa = p-a;
+    vec2 ba = b-a;
+    float t = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.);
+    t = dot(pa, ba)/dot(ba,ba);
+    
+    return length(pa - ba * t);
+}
+
+
+float Line(vec2 p, vec2 a, vec2 b) {
+    float d = DistLine(p, a, b);
+    float m = S(.03, .01, d);
+    m = s(d, .03);
+    return m;
 }
 
 //Triangle 2D SDF from iq shader:
@@ -101,14 +122,18 @@ float drawPoint(vec2 uv, vec3 point, mat3 transform)
 
 float drawTriangle(vec2 uv, vec3 vert1, vec3 vert2, vec3 vert3, mat3 transform)
 {
-    float pixelSize = fwidth(uv.x);
     
     //apply matrix transformation to all triangle vertices
     vert1 = transform * vert1;
     vert2 = transform * vert2;
     vert3 = transform * vert3;
     
-    return smoothstep(pixelSize, -pixelSize, sdTriangle(uv, vert1.xy, vert2.xy, vert3.xy));
+    
+    
+    float l1 = Line(uv, vert1.xy, vert2.xy);
+    float l2 = Line(uv, vert2.xy, vert3.xy);
+    float l3 = Line(uv, vert3.xy, vert1.xy);
+    return l1 + l2 + l3;
 }
 
 void main(void)
