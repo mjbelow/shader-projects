@@ -1,40 +1,149 @@
-#version 120
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform vec4 iMouse;
 uniform vec2 iResolution;
 uniform float iTime;
 
-#define PI 3.14159265358979323846264
-#define  E 2.71828182845904523536028
+//Shader License: CC BY 3.0
+//Author: Jan Mróz (jaszunio15)
 
-vec4 multiply(vec4 a, vec4 b)
+#define POINT_SIZE 3.0
+#define PI 3.1419
+
+vec4 grid(vec2 uv)
 {
-    return a * b;
+    float pixelSize = fwidth(uv.x);
+    
+    //OX and OY
+    vec4 mainAxes = vec4(0.5, 1.0, 0.5, 0.0) * smoothstep(pixelSize * 3.0, 0.0, abs(uv.x)) 
+        + vec4(1.0, 0.5, 0.5, 0.0) * smoothstep(pixelSize * 3.0, 0.0, abs(uv.y));
+    
+    uv = fract(uv + 0.5) - 0.5;
+    
+    //applying grid
+    vec4 result = vec4(0.5, 1.0, 0.5, 0.0) * smoothstep(pixelSize * 2.0, 0.0, abs(uv.x)) 
+        + vec4(1.0, 0.5, 0.5, 0.0) * smoothstep(pixelSize * 2.0, 0.0, abs(uv.y))
+        + mainAxes;
+    
+    return result * 0.5;
 }
 
-vec4 screen(vec4 a, vec4 b)
+//Triangle 2D SDF from iq shader:
+//https://www.shadertoy.com/view/XsXSz4
+float sdTriangle( in vec2 p, in vec2 p0, in vec2 p1, in vec2 p2 )
 {
+	vec2 e0 = p1 - p0;
+	vec2 e1 = p2 - p1;
+	vec2 e2 = p0 - p2;
 
-    return 1 - ( (1 - a) * (1 - b) );
+	vec2 v0 = p - p0;
+	vec2 v1 = p - p1;
+	vec2 v2 = p - p2;
 
+	vec2 pq0 = v0 - e0*clamp( dot(v0,e0)/dot(e0,e0), 0.0, 1.0 );
+	vec2 pq1 = v1 - e1*clamp( dot(v1,e1)/dot(e1,e1), 0.0, 1.0 );
+	vec2 pq2 = v2 - e2*clamp( dot(v2,e2)/dot(e2,e2), 0.0, 1.0 );
+    
+    float s = sign( e0.x*e2.y - e0.y*e2.x );
+    vec2 d = min( min( vec2( dot( pq0, pq0 ), s*(v0.x*e0.y-v0.y*e0.x) ),
+                       vec2( dot( pq1, pq1 ), s*(v1.x*e1.y-v1.y*e1.x) )),
+                       vec2( dot( pq2, pq2 ), s*(v2.x*e2.y-v2.y*e2.x) ));
+
+	return -sqrt(d.x)*sign(d.y);
+}
+
+//creating scaling transformation matrix
+mat3 scaleMat(float scaleX, float scaleY)
+{
+	mat3 M;
+    M[0] = vec3(scaleX, 0.0, 0.0);
+    M[1] = vec3(0.0, scaleY, 0.0);
+    M[2] = vec3(0.0, 0.0, 1.0);
+    
+    return M;
+}
+
+//creating rotating transformation matrix
+mat3 rotationMat(float angle)
+{
+    angle = angle / 180.0 * PI;
+        
+ 	mat3 M;
+    M[0] = vec3(cos(angle), sin(angle), 0.0);
+    M[1] = vec3(-sin(angle), cos(angle), 0.0);
+    M[2] = vec3(0.0, 0.0, 1.0);
+    
+    return M;
+} 
+
+//creating offset transformation matrix
+mat3 moveMat(float offsetX, float offsetY)
+{
+ 	mat3 M;
+    M[0] = vec3(1.0, 0.0, 0.0);
+    M[1] = vec3(0.0, 1.0, 0.0);
+    M[2] = vec3(offsetX, offsetY, 1.0);
+    
+    return M;
+}  
+
+float drawPoint(vec2 uv, vec3 point, mat3 transform)
+{
+    float pixelSize = fwidth(uv.x);
+    
+    //apply transformation to the point
+    point = transform * point;
+    
+    return smoothstep(POINT_SIZE * pixelSize, 
+                      POINT_SIZE * pixelSize - pixelSize * 2.0, 
+                      distance(uv, point.xy));
+}
+
+float drawTriangle(vec2 uv, vec3 vert1, vec3 vert2, vec3 vert3, mat3 transform)
+{
+    float pixelSize = fwidth(uv.x);
+    
+    //apply matrix transformation to all triangle vertices
+    vert1 = transform * vert1;
+    vert2 = transform * vert2;
+    vert3 = transform * vert3;
+    
+    return smoothstep(pixelSize, -pixelSize, sdTriangle(uv, vert1.xy, vert2.xy, vert3.xy));
 }
 
 void main(void)
 {
+    vec3 uv = vec3((gl_FragCoord.xy * 2.0 - iResolution.xy) / iResolution.y, 1.0);
+    
+    //uv scale
+    uv *= 5.0;
 
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
-
-    float cycle = PI*2.0/3.0;
-
-    vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0, cycle, cycle*2.0));
-
-    vec4 tex0 = texture2D(iChannel0, uv);
-    vec4 tex1 = texture2D(iChannel1, uv);
-    vec4 color = vec4(col, 1.0);
-        
-    if (tex1.r < .5 && tex1.g < .5 && tex1.b < .5)
-        gl_FragColor = screen(tex0, color);
-    else
-        gl_FragColor = multiply(tex1, color);
+    //triangle vertices
+    vec3 vert1 = vec3(0.0, 0.0, 1.0);
+    vec3 vert2 = vec3(2.0, 0.0, 1.0);
+    vec3 vert3 = vec3(0.0, 2.0, 1.0);
+    
+    //triangle transformation
+    mat3 transformation = 
+        rotationMat(iTime * 10.0) *
+        moveMat(2.0, 0.0) * 
+        rotationMat(iTime * 100.0) *
+        scaleMat(1.0, 1.2) *
+        moveMat(-2.0, 0.0);
+    
+    //drawing a triangle
+    float triangle = drawTriangle(uv.xy, vert1, vert2, vert3, transformation);
+    
+    //placing a rotating point as a child of the triangle
+    mat3 pointTransformation = 
+        transformation * 
+        rotationMat(-iTime * 300.0);
+    
+    //drawing the point as a child of the triangle
+    vec3 pointCenter = vec3(0.5, 0.0, 1.0);
+    float point = drawPoint(uv.xy, pointCenter, pointTransformation);
+    
+    //display the triangle and the point with uv grid
+    gl_FragColor = mix(grid(uv.xy), vec4(1.0), triangle);
+    gl_FragColor = mix(gl_FragColor, vec4(0.0, 1.0, 1.0, 0.0), point);
 }
