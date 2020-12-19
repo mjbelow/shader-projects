@@ -23,16 +23,44 @@ float Line(vec2 p, vec2 a, vec2 b) {
     m = s(d, .003);
     return m;
 }
+#define PI 3.1419
+
+//creating rotating transformation matrix
+mat2 rotationMat(float angle)
+{
+    angle = angle / 180.0 * PI;
+        
+ 	mat2 M;
+    M[0] = vec2(cos(angle), sin(angle));
+    M[1] = vec2(-sin(angle), cos(angle));
+    
+    return M;
+} 
 
 void main(void)
 {
     // Normalized pixel coordinates (from 0 to 1)
     vec2 uv = (gl_FragCoord.xy - .5 * iResolution.xy) / iResolution.y;
+    //uv += vec2(.1,.1);
     //vec2 uv = gl_FragCoord.xy/iResolution.xy;
     
     vec2 a = vec2(0,0);
     vec2 b = vec2(.5, 0);
     vec2 c = vec2(.5, .5);
+    
+    
+    vec2 d = vec2(0.5,0);
+    
+    a += d;
+    b += d;
+    c += d;
+    
+    
+    mat2 m = rotationMat(iTime*4.);
+    
+    a *= m;
+    b *= m;
+    c *= m;
     
     float l1 = Line(uv, a, b);
     float l2 = Line(uv, b, c);
