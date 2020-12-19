@@ -36,7 +36,7 @@ float DistLine(vec2 p, vec2 a, vec2 b)
  	vec2 pa = p-a;
     vec2 ba = b-a;
     float t = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.);
-    t = dot(pa, ba)/dot(ba,ba);
+    // t = dot(pa, ba)/dot(ba,ba);
     
     return length(pa - ba * t);
 }
