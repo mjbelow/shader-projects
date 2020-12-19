@@ -49,14 +49,17 @@ void main(void)
     vec2 c = vec2(.5, .5);
     
     
-    vec2 d = vec2(0.5,0);
     
-    a += d;
-    b += d;
-    c += d;
+    vec2 origin = vec2(0.5,0.25);
+    
+    uv -= origin;
+    
+    a -= origin;
+    c -= origin;
+    b -= origin;
     
     
-    mat2 m = rotationMat(iTime*4.);
+    mat2 m = rotationMat(iTime*14.);
     
     a *= m;
     b *= m;
