@@ -1,0 +1,23 @@
+// inspired by https://www.shadertoy.com/view/lllSRj
+
+
+void mainImage( out vec4 fragColor, vec2 fragCoord ) { 
+
+// --- color version (base = 110 chars)
+    fragColor = step(texture(iChannel0, fragCoord/8.).r, texture(iChannel1,fragCoord/iResolution.xy));
+
+    
+    
+// --- color version + gamma correction ( + 15 chars):     
+//   fragColor += step(pow(texture(iChannel0, fragCoord/8.),vec4(.45)), texture(iChannel1,fragCoord/iResolution.xy));
+
+    
+    
+// --- B&W version ( base + 1 chars): 
+// texture(iChannel0, fragCoord/8.).r < texture(iChannel1,fragCoord/iResolution.xy).r  ? fragColor++ : fragColor;
+    
+
+    
+// --- B&W version + gamma correction ( + 9 chars): 
+// pow(texture(iChannel0, fragCoord/8.).r, .45) < texture(iChannel1,fragCoord/iResolution.xy).r  ? fragColor++ : fragColor;
+}
