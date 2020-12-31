@@ -1,0 +1,18 @@
+#define PI 3.14159265359
+#define TWO_PI 6.28318530718
+
+void mainImage( out vec4 fragColor, vec2 fragCoord )
+{
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 center = 2.0 * vec2(fragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+    
+	uv = vec2( 2.0 * fragCoord - iResolution.xy ) / iResolution.y;
+     
+    int N = 3;
+    
+    float a = atan(uv.x,uv.y) + PI,
+          r = TWO_PI / float(N),
+          d = cos(floor(0.5 + a / r) * r - a) * length(uv);
+
+    fragColor = vec4(smoothstep(0.41,0.4,d));
+}
