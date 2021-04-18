@@ -155,10 +155,10 @@ float map(vec3 p){
     //float d = length(p) - 0.5 + fBm(p.xy*5.0) * 0.1;
     //float d = length(p) - 0.5 + noise3(p*10.0) * 0.1;
     //float d = length(p) - 0.5 + fBm3(p*15.0) * 0.1;
-    //float d = sdPlane(p - vec3(0.0+iTime, -0.4, 0.0));
+    float d = sdPlane(p - vec3(0.0+iTime, -0.4, 0.0));
     //d = min(d, sdSphere(p));
     //d = smin(d, sdSphere(q), 0.8);
-    float d = sdSphere(q);
+    //float d = sdSphere(q);
     return d;
 }
 
