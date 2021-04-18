@@ -14,233 +14,114 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI acos(-1.)
-#define PI2 PI * 2.
-#define E 2.71828182845904523536028
+#define EPSILON 0.0001
+#define MAX_STEPS 500
+#define MIN_DIST 0.0
+#define MAX_DIST 25.0
 
-/**
- * Rotation matrix around the X axis.
- */
-mat3 rotateX(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(1, 0, 0),
-        vec3(0, c, -s),
-        vec3(0, s, c)
-    );
+#define AMBIENT 0.1
+#define EDGE_THICKNESS 0.015
+#define SHADES 4.0
+
+float TorusSDF(vec3 samplePoint, vec2 dimensions)
+{
+	return length( vec2(length(samplePoint.xz)-dimensions.x,samplePoint.y) )-dimensions.y;
 }
 
-/**
- * Rotation matrix around the Y axis.
- */
-mat3 rotateY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, 0, s),
-        vec3(0, 1, 0),
-        vec3(-s, 0, c)
-    );
+float SceneSDF(vec3 samplePoint)
+{
+    return TorusSDF(samplePoint, vec2(1.3, 0.45));
 }
 
-/**
- * Rotation matrix around the Z axis.
- */
-mat3 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, -s, 0),
-        vec3(s, c, 0),
-        vec3(0, 0, 1)
-    );
+float March(vec3 origin, vec3 direction, float start, float stop, inout float edgeLength)
+{
+    float depth = start;
+    
+    for	(int i = 0; i < MAX_STEPS; i++)
+    {
+        float dist = SceneSDF(origin + (depth * direction)); // Grab min step
+        edgeLength = min(dist, edgeLength);
+        
+        if (dist < EPSILON) // Hit
+            return depth;
+        
+        if (dist > edgeLength && edgeLength <= EDGE_THICKNESS ) // Edge hit
+            return 0.0;
+        
+        depth += dist; // Step
+        
+        if (depth >= stop) // Reached max
+            break;
+    }
+    
+    return stop;
 }
 
-/**
- * Constructive solid geometry intersection operation on SDF-calculated distances.
- */
-float intersectSDF(float distA, float distB) {
-    return max(distA, distB);
-}
-
-/**
- * Constructive solid geometry union operation on SDF-calculated distances.
- */
-float unionSDF(float distA, float distB) {
-    return min(distA, distB);
-}
-
-/**
- * Constructive solid geometry difference operation on SDF-calculated distances.
- */
-float differenceSDF(float distA, float distB) {
-    return max(distA, -distB);
-}
-
-/**
- * Return the normalized direction to march in from the eye point for a single pixel.
- *
- * fieldOfView: vertical field of view in degrees
- * size: resolution of the output image
- * fragCoord: the x,y coordinate of the pixel in the output image
- */
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-    vec2 xy = fragCoord - size / 2.0;
-    float z = size.y / tan(radians(fieldOfView) / 2.0);
+vec3 RayDirection(float fov, vec2 size, vec2 fragCoord)
+{
+    vec2 xy = fragCoord - (size / 2.0);
+    float z = size.y / tan(radians(fov) / 2.0);
     return normalize(vec3(xy, -z));
 }
 
-/**
- * Return a transform matrix that will transform a ray from view space
- * to world coordinates, given the eye point, the camera target, and an up vector.
- *
- * This assumes that the center of the camera is aligned with the negative z axis in
- * view space when calculating the ray marching direction. See rayDirection.
- */
-mat3 viewMatrix(vec3 eye, vec3 center, vec3 up) {
-    // Based on gluLookAt man page
-    vec3 f = normalize(center - eye);
-    vec3 s = normalize(cross(f, up));
+vec3 EstimateNormal(vec3 point)
+{
+    return normalize(vec3(SceneSDF(vec3(point.x + EPSILON, point.y, point.z)) - SceneSDF(vec3(point.x - EPSILON, point.y, point.z)),
+                          SceneSDF(vec3(point.x, point.y + EPSILON, point.z)) - SceneSDF(vec3(point.x, point.y - EPSILON, point.z)),
+                          SceneSDF(vec3(point.x, point.y, point.z + EPSILON)) - SceneSDF(vec3(point.x, point.y, point.z - EPSILON))));
+}
+
+mat4 LookAt(vec3 camera, vec3 target, vec3 up)
+{
+    vec3 f = normalize(target - camera);
+    vec3 s = cross(f, up);
     vec3 u = cross(s, f);
-    return mat3(s, u, -f);
+    
+    return mat4(vec4(s, 0.0),
+        		vec4(u, 0.0),
+        		vec4(-f, 0.0),
+        		vec4(0.0, 0.0, 0.0, 1));
 }
 
-//Multiply
-vec4 multiply(vec4 a, vec4 b){
-    return a * b;
-}
-
-//Screen
-vec4 screen(vec4 a, vec4 b){
-    return 1 - ( (1 - a) * (1 - b) );
-}
-
-//Color Burn
-vec4 colorBurn (vec4 target, vec4 blend){
-    return 1.0 - (1.0 - target)/ blend;
-}
-
-//Linear Burn
-vec4 linearBurn (vec4 target, vec4 blend){
-    return target + blend - 1.0;
-}
-
-//Color Dodge
-vec4 colorDodge (vec4 target, vec4 blend){
-    return target / (1.0 - blend);
-}
-
-//Linear Dodge
-vec4 linearDodge (vec4 target, vec4 blend){
-    return target + blend;
-}
-
-//Overlay
-vec4 overlay (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (target.x > 0.5) ? (1.0-(1.0-2.0*(target.x-0.5))*(1.0-blend.x)) : (2.0*target.x)*blend.x;
-    temp.y = (target.y > 0.5) ? (1.0-(1.0-2.0*(target.y-0.5))*(1.0-blend.y)) : (2.0*target.y)*blend.y;
-    temp.z = (target.z > 0.5) ? (1.0-(1.0-2.0*(target.z-0.5))*(1.0-blend.z)) : (2.0*target.z)*blend.z;
-    return temp;
-}
-
-//Soft Light
-vec4 softLight (vec4 target, vec4 blend){
- vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-(blend.x-0.5))) : (target.x * (blend.x + 0.5));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-(blend.y-0.5))) : (target.y * (blend.y + 0.5));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-(blend.z-0.5))) : (target.z * (blend.z + 0.5));
-    return temp;
-}
-
-//Hard Light
-vec4 hardLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-2.0*(blend.x-0.5))) : (target.x * (2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-2.0*(blend.y-0.5))) : (target.y * (2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-2.0*(blend.z-0.5))) : (target.z * (2.0*blend.z));
-    return temp;
-}
-
-//Vivid Light
-vec4 vividLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)/(2.0*(blend.x-0.5))) : (target.x / (1.0-2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)/(2.0*(blend.y-0.5))) : (target.y / (1.0-2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)/(2.0*(blend.z-0.5))) : (target.z / (1.0-2.0*blend.z));
-    return temp;
-}
-
-//Linear Light
-vec4 linearLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (target.x)+(2.0*(blend.x-0.5)) : (target.x +(2.0*blend.x-1.0));
-    temp.y = (blend.y > 0.5) ? (target.y)+(2.0*(blend.y-0.5)) : (target.y +(2.0*blend.y-1.0));
-    temp.z = (blend.z > 0.5) ? (target.z)+(2.0*(blend.z-0.5)) : (target.z +(2.0*blend.z-1.0));
-    return temp;
-}
-
-//Pin Light
-vec4 pinLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (max (target.x, 2.0*(blend.x-0.5))) : (min(target.x, 2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (max (target.y, 2.0*(blend.y-0.5))) : (min(target.y, 2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (max (target.z, 2.0*(blend.z-0.5))) : (min(target.z, 2.0*blend.z));
-    return temp;
+vec3 ComputeLighting(vec3 point, vec3 lightDir, vec3 lightColor)
+{
+    vec3 color = vec3(AMBIENT);
+    float intensity = dot(EstimateNormal(point), normalize(lightDir));
+    intensity = ceil(intensity * SHADES) / SHADES;
+    intensity = max(intensity, AMBIENT);
+    color = lightColor * intensity;
+    return color;
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec3 viewDir = rayDirection(90.0, iResolution.xy, fragCoord);
-    vec3 eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
-
-    float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=iMouse.y/iResolution.y*3.14 + PI/2.0;
-    eye = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx));//*7.;
-
-    mat3 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    vec4 tex = texture(iChannel4, worldDir);
-
-    // The closest point on the surface to the eyepoint along the view ray
-    vec3 p = eye + worldDir;
-
-    // tex = vec4(p, 1);
+    vec3 viewDir = RayDirection(45.0, iResolution.xy, fragCoord);
+    vec3 origin = vec3(sin(iTime) * 9.0, (sin(iTime * 2.0) * 4.0) + 6.0, cos(iTime) * 9.0);
+    mat4 viewTransform = LookAt(origin, vec3(0.0), vec3(0.0, 1.0, 0.0));
+    viewDir = (viewTransform * vec4(viewDir, 0.0)).xyz;
     
-    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
-    // col = vec3(normalize(p.x));
-    // col = vec3(normalize(p.y));
-    // col = vec3(normalize(p.z));
-    // col = p;
-    // col = normalize(p);
-    tex = vec4(col,1);
+    float edgeLength = MAX_DIST;
+    float dist = March(origin, viewDir, MIN_DIST, MAX_DIST, edgeLength);
     
-    // tex *= 1.999;
-    // tex = floor(tex);
-    // tex /= 1.999;
-
-    float amt = .125;
-    float ratio = 4.;
-    float lines_x = mod(p.x, amt);
-    float lines_y = mod(p.y, amt);
-    float lines_z = mod(p.z, amt);
-
-    float line_color = 0;
-
-    if (lines_x < amt / pow(2.,ratio) || lines_y < amt / pow(2.,ratio) || lines_z < amt / pow(2.,ratio))
-        line_color = .3;
-    else
-        line_color = .5;
-
-    float inter = .5;
-    fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
-    // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = softLight(tex, vec4(line_color));
-    // fragColor = mix(fragColor, tex, .5);
+    if (dist > MAX_DIST - EPSILON) // No hit
+    {
+        fragColor = vec4(0.6);
+        return;
+    }
+    
+    if (dist < EPSILON) // Edge hit
+    {
+        fragColor = vec4(0.0);
+        return;
+    }
+    
+    vec3 hitPoint = origin + (dist * viewDir);
+    vec3 lightDir = vec3(sin(iTime * 2.0) * 6.0, 4.0, sin(iTime * 1.25) * 5.0);
+    vec3 color = vec3(1.0, 0.5, 0.1);
+    
+    color = ComputeLighting(hitPoint, lightDir, color);
+    
+    fragColor = vec4(color, 1.0);
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
