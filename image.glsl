@@ -14,233 +14,211 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI acos(-1.)
-#define PI2 PI * 2.
-#define E 2.71828182845904523536028
+float hash1(float x){
+    return fract(sin(x)*43758.34); // 부동소숫점 오류, 곱하는 숫자는 Random Seed 처럼 쓸 수도 있음
+}
+float hash2(vec2 p){
+    //return fract(sin(p.x*15.0 + p.y*35.7) * 43648.23); // 내적과 같음
+    return fract(sin(dot(vec2(15.0, 35.7), p)) * 43648.23); // 마찬가지로 Random Seed 처럼 사용 가능
+}
+float hash3(vec3 p){
+    return fract(sin(dot(vec3(15.0, 35.7, 58.2), p)) * 43648.23);
+}
 
-/**
- * Rotation matrix around the X axis.
- */
-mat3 rotateX(float theta) {
+// Linear Interpolation
+float noise(vec2 p){
+    vec2 g = floor(p);
+    vec2 f = fract(p);
+    f = 3.0*f*f - 2.0*f*f*f; // cubic hermite spline, 3*x^2 - 2*x^3, hermite polymonals
+
+    float lb = hash2(g + vec2(0.0, 0.0));
+    float rb = hash2(g + vec2(1.0, 0.0));
+    float lt = hash2(g + vec2(0.0, 1.0));
+    float rt = hash2(g + vec2(1.0, 1.0));
+
+    float b = mix(lb, rb, f.x);
+    float t = mix(lt, rt, f.x);
+    float res = mix(b, t, f.y);
+
+    return res;
+}
+
+float noise3(vec3 p){
+    vec3 g = floor(p);
+    vec3 f = fract(p);
+    f = 3.0*f*f - 2.0*f*f*f; // cubic hermite spline, 3*x^2 - 2*x^3, hermite polymonals
+
+    float lbd = hash3(g + vec3(0.0, 0.0, 0.0));
+    float rbd = hash3(g + vec3(1.0, 0.0, 0.0));
+    float ltd = hash3(g + vec3(0.0, 1.0, 0.0));
+    float rtd = hash3(g + vec3(1.0, 1.0, 0.0));
+
+    float lbu = hash3(g + vec3(0.0, 0.0, 1.0));
+    float rbu = hash3(g + vec3(1.0, 0.0, 1.0));
+    float ltu = hash3(g + vec3(0.0, 1.0, 1.0));
+    float rtu = hash3(g + vec3(1.0, 1.0, 1.0));
+
+    float bd = mix(lbd, rbd, f.x);
+    float td = mix(ltd, rtd, f.x);
+    float d = mix(bd, td, f.y);
+
+    float bu = mix(lbu, rbu, f.x);
+    float tu = mix(ltu, rtu, f.x);
+    float u = mix(bu, tu, f.y);
+
+    float res = mix(d, u, f.z);
+
+    return res;
+}
+
+
+float fBm(vec2 p){
+    float res = 0.0;
+    float theta = 3.141592 * 0.2; // 0.2PI, 계산할때마다 이만큼 회전?
+    theta = 3.141592 + iTime*0.2;
     float c = cos(theta);
     float s = sin(theta);
-    return mat3(
-        vec3(1, 0, 0),
-        vec3(0, c, -s),
-        vec3(0, s, c)
-    );
+    mat2 m = mat2(c, -s, s, c); // 회전행렬
+    res += noise(p); p = m*p;
+    res += noise(p*2.0); p = m*p;
+    res += noise(p*3.0); p = m*p;
+    res += noise(p*4.0); p = m*p;
+    res += noise(p*5.0); p = m*p;
+    res += noise(p*6.0); p = m*p;
+    res /= 6.0;
+
+    return res;
 }
 
-/**
- * Rotation matrix around the Y axis.
- */
-mat3 rotateY(float theta) {
+float fBm3(vec3 p){
+    float res = 0.0;
+    float theta = 3.141592 * 0.2;
+    theta = 3.141592 + iTime*0.2;
     float c = cos(theta);
     float s = sin(theta);
-    return mat3(
-        vec3(c, 0, s),
-        vec3(0, 1, 0),
-        vec3(-s, 0, c)
+    mat3 m = mat3(c, -s, s,
+              c, 0.0, 0.0,
+             0.0, 0.0, 0.0);
+    res += noise3(p); p = m*p;
+    res += noise3(p*2.0); p = m*p;
+    res += noise3(p*3.0); p = m*p;
+    res += noise3(p*4.0); p = m*p;
+    res += noise3(p*5.0); p = m*p;
+    res += noise3(p*6.0); p = m*p;
+    res /= 6.0;
+
+    return res;
+}
+
+vec2 hash2v(vec2 p){
+    mat2 m = mat2(
+        15.3, 36.3,
+        75.8, 153.2
+        );
+    return fract(sin(m*p) * 43648.23); // 내적을 2번한 꼴 , ax + by = x', cx + dy = y'
+}
+
+float voronoi(vec2 p){
+    vec2 g = floor(p);
+    vec2 f = fract(p);
+
+    float res = 8.0;
+    for(int y = -1; y <= 1; y++){
+        for(int x = -1; x <= 1; x++){
+            vec2 b = vec2(x, y); // x,y,z에 -1~1까지 9개 값이 나온다
+            float h = distance(hash2v(g + b) + b, f);
+            res = min(res, h);
+        }
+    }
+
+    return res;
+}
+
+
+float smin(float a, float b, float k){
+    float h = clamp((b-a)/k*0.5+0.5, 0.,1.);
+    return mix(b,a,h) - k*h*(1. -h);
+}
+
+float sdPlane(vec3 p){
+    //return p.y + noise(p.xz*2.0)*0.2;
+    return p.y - voronoi(p.xz*1.0)*0.2;
+}
+
+float sdSphere(vec3 p){
+    return length(p)-0.5;// + noise3(p * 15.0 + iTime) * 0.02;
+}
+
+float map(vec3 p){
+    vec3 q = mod(p*1.0, 2.5) -1.0;// + vec3(0.0, -0.8, 0.0);
+
+    //float d = length(p) - 0.5 + fBm(p.xy*5.0) * 0.1;
+    //float d = length(p) - 0.5 + noise3(p*10.0) * 0.1;
+    //float d = length(p) - 0.5 + fBm3(p*15.0) * 0.1;
+    //float d = sdPlane(p - vec3(0.0+iTime, -0.4, 0.0));
+    //d = min(d, sdSphere(p));
+    //d = smin(d, sdSphere(q), 0.8);
+    float d = sdSphere(q);
+    return d;
+}
+
+vec3 calcNormal(vec3 p){
+    vec2 e = vec2(0.0001, 0.0);
+    vec3 nor = vec3(
+        map(p+e.xyy) - map(p-e.xyy),
+        map(p+e.yxy) - map(p-e.yxy),
+        map(p+e.yyx) - map(p-e.yyx)
     );
+    return normalize(nor);
 }
 
-/**
- * Rotation matrix around the Z axis.
- */
-mat3 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, -s, 0),
-        vec3(s, c, 0),
-        vec3(0, 0, 1)
-    );
+
+
+void main( void ) {
+    vec2 p = ( gl_FragCoord.xy / iResolution.xy );
+    //p = fract(p*2.0);
+    p = p*2.0-1.0;
+    p.x *= iResolution.x/iResolution.y;
+
+    float tt = iTime*5.0;
+    tt = sin(iTime*3.0)*5.0-5.5;
+    vec3 ro = vec3(0.0, -0.0 + sin(iTime*5.0)*0.1, 3.0 - tt);
+    ro = vec3(cos(iTime)*5.0, 0.0, sin(iTime)*5.0);
+    vec3 center = vec3(0.0, 0.0, 0.0);
+    vec3 cw = normalize(center - ro);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 cu = normalize(cross(cw, up));
+    vec3 cv = normalize(cross(cu, cw));
+
+    vec3 rd = normalize(p.x*cu + p.y*cv + 2.5*cw);
+
+
+    float e = 0.0001;
+    float t = 0.0;
+    float h = e * 2.0;
+    for(int i=0; i<60; i++){
+        if(h<e || t>20.0) continue;
+        h = map(ro + rd * t);
+        t+=h;
+    }
+
+    float col = 1.0-length(p);
+    vec3 cc = vec3(0.0);
+    cc = (1.0-length(p)) * vec3(0.5, 0.2, 0.4);
+    if(t<20.0){
+        vec3 pos = ro+rd*t;
+        vec3 lig = normalize(vec3(1.0));
+        vec3 nor = calcNormal(pos);
+        float NL = max(0.0, dot(nor, lig));
+        col = NL;// + pos.y*0.5;
+        //col = t/5.0; // like DepthMap
+        cc = vec3(col*0.7, 0.1, col*0.3);
+        //cc += pos.y*vec3(0.0,0.0,0.2);
+        float NV = max(0.0, dot(nor, rd));
+        NV = 1.0-NV;
+        NV = NV*NV*NV*NV*NV*NV;
+        cc *= NV;
+    }
+
+    FragColor = vec4( cc + ((1.0-length(p))*vec3(0.0, 0.05, 0.01)), 1.0 );
 }
-
-/**
- * Constructive solid geometry intersection operation on SDF-calculated distances.
- */
-float intersectSDF(float distA, float distB) {
-    return max(distA, distB);
-}
-
-/**
- * Constructive solid geometry union operation on SDF-calculated distances.
- */
-float unionSDF(float distA, float distB) {
-    return min(distA, distB);
-}
-
-/**
- * Constructive solid geometry difference operation on SDF-calculated distances.
- */
-float differenceSDF(float distA, float distB) {
-    return max(distA, -distB);
-}
-
-/**
- * Return the normalized direction to march in from the eye point for a single pixel.
- *
- * fieldOfView: vertical field of view in degrees
- * size: resolution of the output image
- * fragCoord: the x,y coordinate of the pixel in the output image
- */
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-    vec2 xy = fragCoord - size / 2.0;
-    float z = size.y / tan(radians(fieldOfView) / 2.0);
-    return normalize(vec3(xy, -z));
-}
-
-/**
- * Return a transform matrix that will transform a ray from view space
- * to world coordinates, given the eye point, the camera target, and an up vector.
- *
- * This assumes that the center of the camera is aligned with the negative z axis in
- * view space when calculating the ray marching direction. See rayDirection.
- */
-mat3 viewMatrix(vec3 eye, vec3 center, vec3 up) {
-    // Based on gluLookAt man page
-    vec3 f = normalize(center - eye);
-    vec3 s = normalize(cross(f, up));
-    vec3 u = cross(s, f);
-    return mat3(s, u, -f);
-}
-
-//Multiply
-vec4 multiply(vec4 a, vec4 b){
-    return a * b;
-}
-
-//Screen
-vec4 screen(vec4 a, vec4 b){
-    return 1 - ( (1 - a) * (1 - b) );
-}
-
-//Color Burn
-vec4 colorBurn (vec4 target, vec4 blend){
-    return 1.0 - (1.0 - target)/ blend;
-}
-
-//Linear Burn
-vec4 linearBurn (vec4 target, vec4 blend){
-    return target + blend - 1.0;
-}
-
-//Color Dodge
-vec4 colorDodge (vec4 target, vec4 blend){
-    return target / (1.0 - blend);
-}
-
-//Linear Dodge
-vec4 linearDodge (vec4 target, vec4 blend){
-    return target + blend;
-}
-
-//Overlay
-vec4 overlay (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (target.x > 0.5) ? (1.0-(1.0-2.0*(target.x-0.5))*(1.0-blend.x)) : (2.0*target.x)*blend.x;
-    temp.y = (target.y > 0.5) ? (1.0-(1.0-2.0*(target.y-0.5))*(1.0-blend.y)) : (2.0*target.y)*blend.y;
-    temp.z = (target.z > 0.5) ? (1.0-(1.0-2.0*(target.z-0.5))*(1.0-blend.z)) : (2.0*target.z)*blend.z;
-    return temp;
-}
-
-//Soft Light
-vec4 softLight (vec4 target, vec4 blend){
- vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-(blend.x-0.5))) : (target.x * (blend.x + 0.5));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-(blend.y-0.5))) : (target.y * (blend.y + 0.5));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-(blend.z-0.5))) : (target.z * (blend.z + 0.5));
-    return temp;
-}
-
-//Hard Light
-vec4 hardLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-2.0*(blend.x-0.5))) : (target.x * (2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-2.0*(blend.y-0.5))) : (target.y * (2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-2.0*(blend.z-0.5))) : (target.z * (2.0*blend.z));
-    return temp;
-}
-
-//Vivid Light
-vec4 vividLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)/(2.0*(blend.x-0.5))) : (target.x / (1.0-2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)/(2.0*(blend.y-0.5))) : (target.y / (1.0-2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)/(2.0*(blend.z-0.5))) : (target.z / (1.0-2.0*blend.z));
-    return temp;
-}
-
-//Linear Light
-vec4 linearLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (target.x)+(2.0*(blend.x-0.5)) : (target.x +(2.0*blend.x-1.0));
-    temp.y = (blend.y > 0.5) ? (target.y)+(2.0*(blend.y-0.5)) : (target.y +(2.0*blend.y-1.0));
-    temp.z = (blend.z > 0.5) ? (target.z)+(2.0*(blend.z-0.5)) : (target.z +(2.0*blend.z-1.0));
-    return temp;
-}
-
-//Pin Light
-vec4 pinLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (max (target.x, 2.0*(blend.x-0.5))) : (min(target.x, 2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (max (target.y, 2.0*(blend.y-0.5))) : (min(target.y, 2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (max (target.z, 2.0*(blend.z-0.5))) : (min(target.z, 2.0*blend.z));
-    return temp;
-}
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    vec3 viewDir = rayDirection(90.0, iResolution.xy, fragCoord);
-    vec3 eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
-
-    float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=iMouse.y/iResolution.y*3.14 + PI/2.0;
-    eye = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx));//*7.;
-
-    mat3 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    vec4 tex = texture(iChannel4, worldDir);
-
-    // The closest point on the surface to the eyepoint along the view ray
-    vec3 p = eye + worldDir;
-
-    // tex = vec4(p, 1);
-    
-    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
-    // col = vec3(normalize(p.x));
-    // col = vec3(normalize(p.y));
-    // col = vec3(normalize(p.z));
-    // col = p;
-    // col = normalize(p);
-    tex = vec4(col,1);
-    
-    // tex *= 1.999;
-    // tex = floor(tex);
-    // tex /= 1.999;
-
-    float amt = .125;
-    float ratio = 4.;
-    float lines_x = mod(p.x, amt);
-    float lines_y = mod(p.y, amt);
-    float lines_z = mod(p.z, amt);
-
-    float line_color = 0;
-
-    if (lines_x < amt / pow(2.,ratio) || lines_y < amt / pow(2.,ratio) || lines_z < amt / pow(2.,ratio))
-        line_color = .3;
-    else
-        line_color = .5;
-
-    float inter = .5;
-    fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
-    // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = softLight(tex, vec4(line_color));
-    // fragColor = mix(fragColor, tex, .5);
-}
-
-void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
