@@ -25,7 +25,7 @@ uniform float iTime;
 
 float TorusSDF(vec3 samplePoint, vec2 dimensions)
 {
-	return length( vec2(length(samplePoint.xz)-dimensions.x,samplePoint.y) )-dimensions.y;
+    return length( vec2(length(samplePoint.xz)-dimensions.x,samplePoint.y) )-dimensions.y;
 }
 
 float SceneSDF(vec3 samplePoint)
@@ -36,24 +36,24 @@ float SceneSDF(vec3 samplePoint)
 float March(vec3 origin, vec3 direction, float start, float stop, inout float edgeLength)
 {
     float depth = start;
-    
-    for	(int i = 0; i < MAX_STEPS; i++)
+
+    for (int i = 0; i < MAX_STEPS; i++)
     {
         float dist = SceneSDF(origin + (depth * direction)); // Grab min step
         edgeLength = min(dist, edgeLength);
-        
+
         if (dist < EPSILON) // Hit
             return depth;
-        
+
         if (dist > edgeLength && edgeLength <= EDGE_THICKNESS ) // Edge hit
             return 0.0;
-        
+
         depth += dist; // Step
-        
+
         if (depth >= stop) // Reached max
             break;
     }
-    
+
     return stop;
 }
 
@@ -76,11 +76,11 @@ mat4 LookAt(vec3 camera, vec3 target, vec3 up)
     vec3 f = normalize(target - camera);
     vec3 s = cross(f, up);
     vec3 u = cross(s, f);
-    
+
     return mat4(vec4(s, 0.0),
-        		vec4(u, 0.0),
-        		vec4(-f, 0.0),
-        		vec4(0.0, 0.0, 0.0, 1));
+                vec4(u, 0.0),
+                vec4(-f, 0.0),
+                vec4(0.0, 0.0, 0.0, 1));
 }
 
 vec3 ComputeLighting(vec3 point, vec3 lightDir, vec3 lightColor)
@@ -95,32 +95,32 @@ vec3 ComputeLighting(vec3 point, vec3 lightDir, vec3 lightColor)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec3 viewDir = RayDirection(45.0, iResolution.xy, fragCoord);
+    vec3 viewDir = RayDirection(90.0, iResolution.xy, fragCoord);
     vec3 origin = vec3(sin(iTime) * 9.0, (sin(iTime * 2.0) * 4.0) + 6.0, cos(iTime) * 9.0);
     mat4 viewTransform = LookAt(origin, vec3(0.0), vec3(0.0, 1.0, 0.0));
     viewDir = (viewTransform * vec4(viewDir, 0.0)).xyz;
-    
+
     float edgeLength = MAX_DIST;
     float dist = March(origin, viewDir, MIN_DIST, MAX_DIST, edgeLength);
-    
+
     if (dist > MAX_DIST - EPSILON) // No hit
     {
-        fragColor = vec4(0.6);
+        fragColor = texture(iChannel4, viewDir);
         return;
     }
-    
+
     if (dist < EPSILON) // Edge hit
     {
         fragColor = vec4(0.0);
         return;
     }
-    
+
     vec3 hitPoint = origin + (dist * viewDir);
     vec3 lightDir = vec3(sin(iTime * 2.0) * 6.0, 4.0, sin(iTime * 1.25) * 5.0);
     vec3 color = vec3(1.0, 0.5, 0.1);
-    
+
     color = ComputeLighting(hitPoint, lightDir, color);
-    
+
     fragColor = vec4(color, 1.0);
 }
 
