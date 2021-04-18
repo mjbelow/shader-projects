@@ -65,10 +65,10 @@ iChannel1 = gh_texture.create_from_file("./iChannel1", PF_U8_RGBA, abs_path)
 iChannel2 = gh_texture.create_from_file("./iChannel2", PF_U8_RGBA, abs_path)
 iChannel3 = gh_texture.create_from_file("./iChannel3", PF_U8_RGBA, abs_path)
 
-iChannel4 = gh_texture.create_cube_from_file("iChannel4/px.jpg", "iChannel4/nx.jpg", "iChannel4/py.jpg", "iChannel4/ny.jpg", "iChannel4/pz.jpg", "iChannel4/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
-iChannel5 = gh_texture.create_cube_from_file("iChannel5/px.jpg", "iChannel5/nx.jpg", "iChannel5/py.jpg", "iChannel5/ny.jpg", "iChannel5/pz.jpg", "iChannel5/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
-iChannel6 = gh_texture.create_cube_from_file("iChannel6/px.jpg", "iChannel6/nx.jpg", "iChannel6/py.jpg", "iChannel6/ny.jpg", "iChannel6/pz.jpg", "iChannel6/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
-iChannel7 = gh_texture.create_cube_from_file("iChannel7/px.jpg", "iChannel7/nx.jpg", "iChannel7/py.jpg", "iChannel7/ny.jpg", "iChannel7/pz.jpg", "iChannel7/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel4 = gh_texture.create_cube_from_file("iChannel4/px.png", "iChannel4/nx.png", "iChannel4/py.png", "iChannel4/ny.png", "iChannel4/pz.png", "iChannel4/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel5 = gh_texture.create_cube_from_file("iChannel5/px.png", "iChannel5/nx.png", "iChannel5/py.png", "iChannel5/ny.png", "iChannel5/pz.png", "iChannel5/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel6 = gh_texture.create_cube_from_file("iChannel6/px.png", "iChannel6/nx.png", "iChannel6/py.png", "iChannel6/ny.png", "iChannel6/pz.png", "iChannel6/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel7 = gh_texture.create_cube_from_file("iChannel7/px.png", "iChannel7/nx.png", "iChannel7/py.png", "iChannel7/ny.png", "iChannel7/pz.png", "iChannel7/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
 
 
 gh_renderer.set_vsync(1)
