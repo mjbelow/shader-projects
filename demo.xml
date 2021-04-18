@@ -1,38 +1,51 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 
 <glsl_hacker>
-	
-  <window name="win3d01" title="Color Blending" 
-          width="850" height="700" 
+
+  <window name="win3d01" title="Color Blending"
+          width="850" height="700"
           gl_version_major="2" gl_version_minor="1" />
 
 
-          
+
 <gpu_program name="gpu_program01"
-				filename_ps="image.glsl"
-				livecoding_from_file_ps="1"
-				livecoding_from_file_update_delay=".25"
+                filename_ps="image.glsl"
+                livecoding_from_file_ps="1"
+                livecoding_from_file_update_delay=".25"
 >
-	<raw_data_vs><![CDATA[	 
+    <raw_data_vs><![CDATA[
 #version 120
 void main()
-{	
-  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;		
-	gl_TexCoord[0] = gl_MultiTexCoord0;
+{
+  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+    gl_TexCoord[0] = gl_MultiTexCoord0;
 }
   ]]></raw_data_vs>
-  
+
 
 </gpu_program>
 
 
-  
-  
-	<script name="init_scene" run_mode="INIT" >
-		<raw_data><![CDATA[	
-    
+
+
+    <script name="init_scene" run_mode="INIT" >
+        <raw_data><![CDATA[
+
+-- # Pixel formats:
+PF_U8_RGB = 1
+PF_U8_BGR = 2
+PF_U8_RGBA = 3
+PF_U8_BGRA = 4
+PF_F32_RGB = 5
+PF_F32_RGBA = 6
+PF_F32_R = 7
+PF_U8_R = 11
+PF_U8_RG = 12
+
+local gen_mipmaps = 0
+
 winW, winH = gh_window.getsize()
-   
+
 
 
 
@@ -47,8 +60,15 @@ fullscreen_quad = gh_mesh.create_quad(winW, winH)
 quad = gh_mesh.create_quad(546, 528)
 
 local abs_path = 0
-iChannel0 = gh_texture.create_from_file("./iChannel0", 0, abs_path)
-iChannel1 = gh_texture.create_from_file("./iChannel1", 0, abs_path)
+iChannel0 = gh_texture.create_from_file("./iChannel0", PF_U8_RGBA, abs_path)
+iChannel1 = gh_texture.create_from_file("./iChannel1", PF_U8_RGBA, abs_path)
+iChannel2 = gh_texture.create_from_file("./iChannel2", PF_U8_RGBA, abs_path)
+iChannel3 = gh_texture.create_from_file("./iChannel3", PF_U8_RGBA, abs_path)
+
+iChannel4 = gh_texture.create_cube_from_file("iChannel4/px.jpg", "iChannel4/nx.jpg", "iChannel4/py.jpg", "iChannel4/ny.jpg", "iChannel4/pz.jpg", "iChannel4/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel5 = gh_texture.create_cube_from_file("iChannel5/px.jpg", "iChannel5/nx.jpg", "iChannel5/py.jpg", "iChannel5/ny.jpg", "iChannel5/pz.jpg", "iChannel5/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel6 = gh_texture.create_cube_from_file("iChannel6/px.jpg", "iChannel6/nx.jpg", "iChannel6/py.jpg", "iChannel6/ny.jpg", "iChannel6/pz.jpg", "iChannel6/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
+iChannel7 = gh_texture.create_cube_from_file("iChannel7/px.jpg", "iChannel7/nx.jpg", "iChannel7/py.jpg", "iChannel7/ny.jpg", "iChannel7/pz.jpg", "iChannel7/nz.jpg", abs_path, PF_U8_RGBA, gen_mipmaps)
 
 
 gh_renderer.set_vsync(1)
@@ -67,18 +87,18 @@ BLEND_FACTOR_SRC_COLOR = 8
 BLEND_FACTOR_ONE_MINUS_SRC_COLOR = 9
 
 
-		]]></raw_data>
-	</script> 
-  
-  <script name="update_scene" run_mode="FRAME" 
-        filename="frame.lua" 
-        livecoding_from_file="1" 
+        ]]></raw_data>
+    </script>
+
+  <script name="update_scene" run_mode="FRAME"
+        filename="frame.lua"
+        livecoding_from_file="1"
         livecoding_from_file_update_delay="0.2" />
 
-	
 
-	<script name="resize_scene" run_mode="SIZE" >
-		<raw_data><![CDATA[	
+
+    <script name="resize_scene" run_mode="SIZE" >
+        <raw_data><![CDATA[
 
 winW, winH = gh_window.getsize(0)
 
@@ -88,8 +108,8 @@ gh_camera.set_viewport(camera_ortho, 0, 0, winW, winH)
 
 gh_mesh.update_quad_size(fullscreen_quad, winW, winH)
 
-		]]></raw_data>
-	</script> 
-  
-  
+        ]]></raw_data>
+    </script>
+
+
 </glsl_hacker>
