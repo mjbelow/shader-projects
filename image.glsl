@@ -103,9 +103,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float edgeLength = MAX_DIST;
     float dist = March(origin, viewDir, MIN_DIST, MAX_DIST, edgeLength);
 
+    vec3 p = origin + dist * viewDir;
+
     if (dist > MAX_DIST - EPSILON) // No hit
     {
-        fragColor = texture(iChannel4, viewDir);
+        fragColor = texture(iChannel4, p);
         return;
     }
 
@@ -119,6 +121,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 lightDir = vec3(sin(iTime * 2.0) * 6.0, 4.0, sin(iTime * 1.25) * 5.0);
     vec3 color = vec3(1.0, 0.5, 0.1);
 
+    color = texture(iChannel4, p).rgb;
     color = ComputeLighting(hitPoint, lightDir, color);
 
     fragColor = vec4(color, 1.0);
