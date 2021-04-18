@@ -60,10 +60,10 @@ fullscreen_quad = gh_mesh.create_quad(winW, winH)
 quad = gh_mesh.create_quad(546, 528)
 
 local abs_path = 0
-iChannel0 = gh_texture.create_from_file("./iChannel0", PF_U8_RGBA, abs_path)
-iChannel1 = gh_texture.create_from_file("./iChannel1", PF_U8_RGBA, abs_path)
-iChannel2 = gh_texture.create_from_file("./iChannel2", PF_U8_RGBA, abs_path)
-iChannel3 = gh_texture.create_from_file("./iChannel3", PF_U8_RGBA, abs_path)
+iChannel0 = gh_texture.create_from_file("iChannel0.png", PF_U8_RGBA, abs_path)
+iChannel1 = gh_texture.create_from_file("iChannel1.png", PF_U8_RGBA, abs_path)
+iChannel2 = gh_texture.create_from_file("iChannel2.png", PF_U8_RGBA, abs_path)
+iChannel3 = gh_texture.create_from_file("iChannel3.png", PF_U8_RGBA, abs_path)
 
 iChannel4 = gh_texture.create_cube_from_file("iChannel4/px.png", "iChannel4/nx.png", "iChannel4/py.png", "iChannel4/ny.png", "iChannel4/pz.png", "iChannel4/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
 iChannel5 = gh_texture.create_cube_from_file("iChannel5/px.png", "iChannel5/nx.png", "iChannel5/py.png", "iChannel5/ny.png", "iChannel5/pz.png", "iChannel5/nz.png", abs_path, PF_U8_RGBA, gen_mipmaps)
