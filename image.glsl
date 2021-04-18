@@ -73,7 +73,7 @@ float QueryScene( vec3 QueryPoint, float Time )
             vec3(0.5)
         )
     );
-    Distance = OpUnion( Distance, Floor(QueryPoint) );
+    Distance = OpUnion( Distance, max(min(QueryPoint.y , QueryPoint.x), QueryPoint.z) );
     Distance = OpUnion(
         Distance,
         Box(
@@ -106,7 +106,7 @@ float QueryScene( vec3 QueryPoint, float Time )
 }
 
 const int MaxSteps = 512;
-const float EPSILON = 0.000001;
+const float EPSILON = 0.0001;
 float MarchScene( vec3 Origin, vec3 Direction, float Time )
 {
 	float Distance = 0.0;
@@ -207,14 +207,39 @@ float SoftShadow( in vec3 ro, in vec3 rd, float mint, float maxt, float k )
     return res;
 }
 
+mat3 viewMatrix(vec3 eye, vec3 center, vec3 up) {
+    // Based on gluLookAt man page
+    vec3 f = normalize(center - eye);
+    vec3 s = normalize(cross(f, up));
+    vec3 u = cross(s, f);
+    return mat3(s, u, -f);
+}
+
+// mat4 LookAt(vec3 Eye, vec3 Center, vec3 Up)
+// {
+	// vec3 f = normalize( Center - Eye );
+	// vec3 s = normalize( cross( f, Up) );
+	// vec3 u = cross( s, f );
+	// return mat4(
+		// vec4(  s, 0.0 ),
+		// vec4(  u, 0.0 ),
+		// vec4( -f, 0.0 ),
+		// vec4( 0.0, 0.0, 0.0, 1.0)
+	// );
+// }
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-	vec3 Eye = vec3( ((iMouse.xy / iResolution.xy) * 2.0 - vec2(1.0)) * 9.0, 7.0 );
+    float x_pos = .5+.5*cos(iTime);
+    float y_pos = .5+.5*sin(iTime);
+
+	vec3 Eye = vec3( ((vec2(x_pos, y_pos)) * 2.0 - vec2(1.0)) * 12.0, 12.0 );
+    // Eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
     vec3 Center = vec3( 0.0,0.0, 1.0 );
-    mat4 CameraToWorld = LookAt(
+    mat3 CameraToWorld = viewMatrix(
         Eye,
         Center,
-        vec3( 0.0, 0.0, 1.0 )  // Up
+        vec3( 0.0, .0, 1.0 )  // Up
     );
     vec3 Color = vec3(0.0);
 #if AA > 1
@@ -228,7 +253,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 
         vec3 WorldDir = (
-            CameraToWorld * vec4( ViewDir , 0.0)
+            CameraToWorld * vec3( ViewDir)
         ).xyz;
 
         float Distance = MarchScene(
