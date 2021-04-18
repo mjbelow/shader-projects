@@ -208,7 +208,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // The closest point on the surface to the eyepoint along the view ray
     vec3 p = eye + worldDir;
 
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
+    // tex = vec4(p, 1);
+    
+    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
+    // col = vec3(normalize(p.x));
+    // col = vec3(normalize(p.y));
+    // col = vec3(normalize(p.z));
+    // col = p;
+    // col = normalize(p);
+    tex = vec4(col,1);
+    
+    // tex *= 1.999;
+    // tex = floor(tex);
+    // tex /= 1.999;
 
     float amt = .125;
     float ratio = 4.;
@@ -227,7 +239,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
     // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
 
-    fragColor = pinLight(tex, vec4(line_color));
+    fragColor = softLight(tex, vec4(line_color));
     // fragColor = mix(fragColor, tex, .5);
 }
 
