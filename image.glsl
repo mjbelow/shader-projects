@@ -8,128 +8,73 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI 3.14159265358979323846264
-#define  E 2.71828182845904523536028
+/* 
 
-vec4 multiply(vec4 a, vec4 b)
+Uncomment code to see Sawtooth and Triangle Waves etc. 
+   
+*/
+
+const int NUM_WAVES = 5;
+float pi = atan(1.0) * 4.0;
+float y;
+
+float Wave(vec2 p, float amplitude, float frequence,float offset_y)
 {
-    return a * b;
+   	// basic sine wave ----------------------------------------------------
+    
+    y =  amplitude*(sin(p.x*frequence))+offset_y;
+    
+    // sine wave with a sampled look --------------------------------------
+    
+    //y =  amplitude*(sin(float(int(p.x*frequence))))+offset_y;
+    
+    // semi random city scape ---------------------------------------------
+    
+    y =  amplitude*(sin(float(int(p.x*frequence))*4.))+offset_y;
+    
+    
+    // triangle wave. -----------------------------------------------------
+    
+    //y = amplitude*(abs(mod(p.x*frequence,2.0)-1.))+offset_y;
+    
+    // "sinewave" pattern with a smoothed triangle wave -------------------
+   
+    //float triangle = abs(mod(p.x*frequence,2.0)-1.);
+    //y = amplitude*(triangle*triangle*(3.0 - 2.0 *triangle))+offset_y;
+    
+    // sawtooth -----------------------------------------------------------
+    // Return only the fraction part of a number. This is calculated as x - floor(x).
+    
+    //y = amplitude*(fract(p.x*frequence))+offset_y;
+    
+    
+	return p.y + y;
 }
 
-vec4 screen(vec4 a, vec4 b)
-{
-
-    return 1 - ( (1 - a) * (1 - b) );
-
-}
-
-
-//Color Burn
-vec4 colorBurn (vec4 target, vec4 blend){
-    return 1.0 - (1.0 - target)/ blend;
-}
-
-//Linear Burn
-vec4 linearBurn (vec4 target, vec4 blend){
-    return target + blend - 1.0;
-}
-
-//Color Dodge
-vec4 colorDodge (vec4 target, vec4 blend){
-    return target / (1.0 - blend);
-}
-
-//Linear Dodge
-vec4 linearDodge (vec4 target, vec4 blend){
-    return target + blend;
-}
-
-//Overlay
-vec4 overlay (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (target.x > 0.5) ? (1.0-(1.0-2.0*(target.x-0.5))*(1.0-blend.x)) : (2.0*target.x)*blend.x;
-    temp.y = (target.y > 0.5) ? (1.0-(1.0-2.0*(target.y-0.5))*(1.0-blend.y)) : (2.0*target.y)*blend.y;
-    temp.z = (target.z > 0.5) ? (1.0-(1.0-2.0*(target.z-0.5))*(1.0-blend.z)) : (2.0*target.z)*blend.z;
-    return temp;
-}
-
-//Soft Light
-vec4 softLight (vec4 target, vec4 blend){
- vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-(blend.x-0.5))) : (target.x * (blend.x + 0.5));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-(blend.y-0.5))) : (target.y * (blend.y + 0.5));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-(blend.z-0.5))) : (target.z * (blend.z + 0.5));
-    return temp;
-}
-
-//Hard Light
-vec4 hardLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-2.0*(blend.x-0.5))) : (target.x * (2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-2.0*(blend.y-0.5))) : (target.y * (2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-2.0*(blend.z-0.5))) : (target.z * (2.0*blend.z));
-    return temp;
-}
-
-//Vivid Light
-vec4 vividLight (vec4 target, vec4 blend){
-     vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)/(2.0*(blend.x-0.5))) : (target.x / (1.0-2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)/(2.0*(blend.y-0.5))) : (target.y / (1.0-2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)/(2.0*(blend.z-0.5))) : (target.z / (1.0-2.0*blend.z));
-    return temp;
-}
-
-//Linear Light
-vec4 linearLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (target.x)+(2.0*(blend.x-0.5)) : (target.x +(2.0*blend.x-1.0));
-    temp.y = (blend.y > 0.5) ? (target.y)+(2.0*(blend.y-0.5)) : (target.y +(2.0*blend.y-1.0));
-    temp.z = (blend.z > 0.5) ? (target.z)+(2.0*(blend.z-0.5)) : (target.z +(2.0*blend.z-1.0));
-    return temp;
-}
-
-//Pin Light
-vec4 pinLight (vec4 target, vec4 blend){
-     vec4 temp;
-    temp.x = (blend.x > 0.5) ? (max (target.x, 2.0*(blend.x-0.5))) : (min(target.x, 2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (max (target.y, 2.0*(blend.y-0.5))) : (min(target.y, 2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (max (target.z, 2.0*(blend.z-0.5))) : (min(target.z, 2.0*blend.z));
-    return temp;
-}
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    vec2 st = fragCoord/iResolution.xy;
+    float colour;
+   	float wave;
+    
+    st=10.0*st-5.;
+    st.x+=iTime;
+     for(int j = NUM_WAVES; j >0; j--)
+    {
+        float i = float(j); 
+        
+        // wave generation 
+        wave = Wave(st,1./i,i,2.0/i);
+        // fill underneath the curve
+        wave = step(1.-wave,1.0);
+        // mix with previous wave in the loop 
+        colour = mix(1.-.15*i,colour,wave);
+    	
+    }
 
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
-
-    float cycle = PI*2.0/3.0;
-
-    vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0, cycle, cycle*2.0));
-
-    vec4 tex0 = texture2D(iChannel0, uv);
-    vec4 tex1 = texture2D(iChannel1, uv);
-    vec4 color = vec4(col, 1.0);
-
-    if (tex1.r < .5 && tex1.g < .5 && tex1.b < .5)
-        fragColor = screen(tex0, color);
-    else
-        fragColor = multiply(tex1, color);
-
-    float amt = 3.;
-    float lines = mod(gl_FragCoord.y, amt);
-    float inter = .2;
-
-    float line_color = 0;
-
-    if (lines < amt / 2.)
-        line_color = 0.3;
-    else
-        line_color = .7;
-
-    // fragColor = (fragColor * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = pinLight(fragColor, vec4(line_color));
+    fragColor = vec4(vec3(colour),1.0);
 }
+
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
