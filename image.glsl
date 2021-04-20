@@ -14,233 +14,242 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI acos(-1.)
-#define PI2 PI * 2.
-#define E 2.71828182845904523536028
+/*--------------------------------------------------------------------------------------
+License CC0 - http://creativecommons.org/publicdomain/zero/1.0/
+To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+----------------------------------------------------------------------------------------
+^ This means do ANYTHING YOU WANT with this code. Because we are programmers, not lawyers.
+-Otavio Good
+*/
 
-/**
- * Rotation matrix around the X axis.
- */
-mat3 rotateX(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(1, 0, 0),
-        vec3(0, c, -s),
-        vec3(0, s, c)
-    );
+/*
+This is a demo of the new font texture. It has a distance field and gradients in the texture.
+Red channel:   Antialiased font if you just want something simple and easy to use.
+Green channel: x gradient of distance field.
+Blue channel:  y gradient of distance field.
+Alpha channel: distance field.
+
+The characters that are encoded are the characters from the first 8 bits of unicode (aka Latin-1 codepage).
+That includes ASCII. In the blanks, there are symbols that seemed useful for shadertoy. Math symbols,
+greek letters, play/pause controls, arrows, musical notes, and some others.
+
+The distance field lets you use the font for ray marching. Since the texture didn't have enough precision
+for a clean distance field, nice smooth gradients have been put in the green/blue channels to get smooth edges.
+
+Sometimes you might see some artifacts in the font edges when you look from an angle. To fix those,
+the ray marching would have to pause at the boundary between each letter since the distance field is
+not continuous between letters. That would complicate this code a bit, so it was left out.
+*/
+
+// ---------------- Config ----------------
+//#define MANUAL_CAMERA
+
+const float PI=3.14159265;
+#define saturate(a) clamp(a, 0.0, 1.0)
+
+vec3 GetReflection(vec3 rayDir)
+{
+	vec3 tex = texture(iChannel4, rayDir).xyz;
+	return(tex*tex);
 }
 
-/**
- * Rotation matrix around the Y axis.
- */
-mat3 rotateY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, 0, s),
-        vec3(0, 1, 0),
-        vec3(-s, 0, c)
-    );
+// min and max function that supports materials in the y component
+vec2 matmin(vec2 a, vec2 b)
+{
+    if (a.x < b.x) return a;
+    else return b;
+}
+vec2 matmax(vec2 a, vec2 b)
+{
+    if (a.x > b.x) return a;
+    else return b;
 }
 
-/**
- * Rotation matrix around the Z axis.
- */
-mat3 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, -s, 0),
-        vec3(s, c, 0),
-        vec3(0, 0, 1)
-    );
+// ---- shapes defined by distance fields ----
+// See this site for a reference to more distance functions...
+// http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+
+// signed box distance field
+float sdBox(vec3 p, vec3 radius)
+{
+  vec3 dist = abs(p) - radius;
+  return min(max(dist.x, max(dist.y, dist.z)), 0.0) + length(max(dist, 0.0));
+}
+// -------------------------------------------
+
+vec4 SampleFontTex(vec2 uv)
+{
+    // Do some tricks with the UVs to spell out "TexFont" in the middle.
+    vec2 fl = floor(uv + 0.5);
+    if (fl.y == 0.0) {
+        if (fl.x == -3.0) fl = vec2(4.0, 10.0);
+    	else if (fl.x == -2.0) fl = vec2(5.0, 9.0);
+    	else if (fl.x == -1.0) fl = vec2(8.0, 8.0);
+    	else if (fl.x == 0.0) fl = vec2(6.0, 11.0);
+    	else if (fl.x == 1.0) fl = vec2(15.0, 9.0);
+    	else if (fl.x == 2.0) fl = vec2(14.0, 9.0);
+    	else if (fl.x == 3.0) fl = vec2(4.0, 8.0);
+    }
+    uv = fl + fract(uv+0.5)-0.5;
+
+    // Sample the font texture. Make sure to not use mipmaps.
+    // Add a small amount to the distance field to prevent a strange bug on some gpus. Slightly mysterious. :(
+    return texture(iChannel0, (uv+0.5)*(1.0/16.0), -100.0) + vec4(0.0, 0.0, 0.0, 0.000000001);
 }
 
-/**
- * Constructive solid geometry intersection operation on SDF-calculated distances.
- */
-float intersectSDF(float distA, float distB) {
-    return max(distA, distB);
+// This is the distance function that defines all the scene's geometry.
+// The input is a position in space.
+// The output is the distance to the nearest surface and a material index.
+vec2 DistanceToObject(vec3 p)
+{
+	// Load the font texture's distance field.
+    float letterDistField = (SampleFontTex(p.xy).w - 0.5+1.0/256.0);
+    // intersect it with a box.
+    float cropBox = sdBox(p, vec3(0.5 + 5.0, 3.5, 0.25));
+    vec2 letters = matmax(vec2(letterDistField, 0.0), vec2(cropBox, 1.0));
+    return letters;
 }
 
-/**
- * Constructive solid geometry union operation on SDF-calculated distances.
- */
-float unionSDF(float distA, float distB) {
-    return min(distA, distB);
-}
+// Input is UV coordinate of pixel to render.
+// Output is RGB color.
+vec3 RayTrace(in vec2 fragCoord )
+{
+	vec3 camPos, camUp, camLookat;
+	// ------------------- Set up the camera rays for ray marching --------------------
+    // Map uv to [-1.0..1.0]
+	vec2 uv = fragCoord.xy/iResolution.xy * 2.0 - 1.0;
+    uv /= 2.0;  // zoom in
 
-/**
- * Constructive solid geometry difference operation on SDF-calculated distances.
- */
-float differenceSDF(float distA, float distB) {
-    return max(distA, -distB);
-}
+#ifdef MANUAL_CAMERA
+    // Camera up vector.
+	camUp=vec3(0,1,0);
 
-/**
- * Return the normalized direction to march in from the eye point for a single pixel.
- *
- * fieldOfView: vertical field of view in degrees
- * size: resolution of the output image
- * fragCoord: the x,y coordinate of the pixel in the output image
- */
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-    vec2 xy = fragCoord - size / 2.0;
-    float z = size.y / tan(radians(fieldOfView) / 2.0);
-    return normalize(vec3(xy, -z));
-}
+	// Camera lookat.
+	camLookat=vec3(0,0.0,0);
 
-/**
- * Return a transform matrix that will transform a ray from view space
- * to world coordinates, given the eye point, the camera target, and an up vector.
- *
- * This assumes that the center of the camera is aligned with the negative z axis in
- * view space when calculating the ray marching direction. See rayDirection.
- */
-mat3 viewMatrix(vec3 eye, vec3 center, vec3 up) {
-    // Based on gluLookAt man page
-    vec3 f = normalize(center - eye);
-    vec3 s = normalize(cross(f, up));
-    vec3 u = cross(s, f);
-    return mat3(s, u, -f);
-}
+    // debugging camera
+    float mx=-iMouse.x/iResolution.x*PI*2.0;
+	float my=iMouse.y/iResolution.y*3.14*0.95 + PI/2.0;
+	camPos = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx))*7.0;
+#else
+    // Camera up vector.
+	camUp=vec3(0,1,0);
 
-//Multiply
-vec4 multiply(vec4 a, vec4 b){
-    return a * b;
-}
+	// Camera lookat.
+	camLookat=vec3(0,0,0);
 
-//Screen
-vec4 screen(vec4 a, vec4 b){
-    return 1 - ( (1 - a) * (1 - b) );
-}
+    float camSpeed = 0.5;
+	float camRad = 6.25;
+    float camAngle = sin(iTime*camSpeed)*0.5;
+	camPos = vec3(sin(camAngle)*camRad, 0.0, -cos(camAngle)*camRad);
+#endif
 
-//Color Burn
-vec4 colorBurn (vec4 target, vec4 blend){
-    return 1.0 - (1.0 - target)/ blend;
-}
+	// Camera setup for ray tracing / marching
+	vec3 camVec=normalize(camLookat - camPos);
+	vec3 sideNorm=normalize(cross(camUp, camVec));
+	vec3 upNorm=cross(camVec, sideNorm);
+	vec3 worldFacing=(camPos + camVec);
+	vec3 worldPix = worldFacing + uv.x * sideNorm * (iResolution.x/iResolution.y) + uv.y * upNorm;
+	vec3 rayVec = normalize(worldPix - camPos);
 
-//Linear Burn
-vec4 linearBurn (vec4 target, vec4 blend){
-    return target + blend - 1.0;
-}
+	// ----------------------------- Ray march the scene ------------------------------
+	vec2 distAndMat;  // Distance and material
+	float t = 0.05;
+	const float maxDepth = 16.0; // farthest distance rays will travel
+	vec3 pos = camPos;
+    const float smallVal = 1.0 / 16384.0;
+    // ray marching time
+    for (int i = 0; i <160; i++)	// This is the count of the max times the ray actually marches.
+    {
+        // Step along the ray.
+        pos = (camPos + rayVec * t);
+        // This is _the_ function that defines the "distance field".
+        // It's really what makes the scene geometry. The idea is that the
+        // distance field returns the distance to the closest object, and then
+        // we know we are safe to "march" along the ray by that much distance
+        // without hitting anything. We repeat this until we get really close
+        // and then break because we have effectively hit the object.
+        distAndMat = DistanceToObject(pos);
 
-//Color Dodge
-vec4 colorDodge (vec4 target, vec4 blend){
-    return target / (1.0 - blend);
-}
+        // move along the ray a safe amount
+        t += distAndMat.x;
+        // If we are very close to the object, let's call it a hit and exit this loop.
+        if ((t > maxDepth) || (abs(distAndMat.x) < smallVal)) break;
+    }
 
-//Linear Dodge
-vec4 linearDodge (vec4 target, vec4 blend){
-    return target + blend;
-}
+	// --------------------------------------------------------------------------------
+	// Now that we have done our ray marching, let's put some color on this geometry.
+	vec3 finalColor = vec3(0.0);
 
-//Overlay
-vec4 overlay (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (target.x > 0.5) ? (1.0-(1.0-2.0*(target.x-0.5))*(1.0-blend.x)) : (2.0*target.x)*blend.x;
-    temp.y = (target.y > 0.5) ? (1.0-(1.0-2.0*(target.y-0.5))*(1.0-blend.y)) : (2.0*target.y)*blend.y;
-    temp.z = (target.z > 0.5) ? (1.0-(1.0-2.0*(target.z-0.5))*(1.0-blend.z)) : (2.0*target.z)*blend.z;
-    return temp;
-}
+	// If a ray actually hit the object, let's light it.
+    if (t <= maxDepth)
+	{
+        // calculate the normal from the distance field. The distance field is a volume, so if you
+        // sample the current point and neighboring points, you can use the difference to get
+        // the normal. This is called a gradient.
+        vec3 smallVec = vec3(1.0/4096.0, 0, 0);
+        vec3 normalU = vec3(DistanceToObject(pos + smallVec.xyy).x - DistanceToObject(pos - smallVec.xyy).x,
+                           DistanceToObject(pos + smallVec.yxy).x - DistanceToObject(pos - smallVec.yxy).x,
+                           DistanceToObject(pos + smallVec.yyx).x - DistanceToObject(pos - smallVec.yyx).x)*0.5;
+        // If the material says we are on the edge of the font, override the normal with the
+        // font texture's gradient. This will give us smoother surfaces on the sides of the font's letters.
+        if (distAndMat.y == 0.0) {
+		    vec4 tx = SampleFontTex(pos.xy) - 0.5;
+            // Put a small number in Z so it can't go to zero.
+            normalU = -vec3(-tx.g, tx.b, 0.0001)*2.0*smallVec.x;
+        }
+        // It looks like ??texture filtering?? can sometimes take the normal to zero length.
+        // Compensate so we don't divide by zero in the normalize function.
+        normalU = normalU+0.000000001;
+        vec3 normal = normalize(normalU);
 
-//Soft Light
-vec4 softLight (vec4 target, vec4 blend){
- vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-(blend.x-0.5))) : (target.x * (blend.x + 0.5));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-(blend.y-0.5))) : (target.y * (blend.y + 0.5));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-(blend.z-0.5))) : (target.z * (blend.z + 0.5));
-    return temp;
-}
+        // ------ Calculate texture color  ------
+        vec3 texColor = vec3(0.3,0.325,0.6)*0.5;
+        if (distAndMat.y == 1.0) {
+            // Make the "TexFont" word yellow
+            if ((floor(pos.y+0.5) == 0.0) && (abs(floor(pos.x+0.5)) <= 3.5)) texColor = vec3(1.0,0.9,0.1);
+        }
 
-//Hard Light
-vec4 hardLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-2.0*(blend.x-0.5))) : (target.x * (2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-2.0*(blend.y-0.5))) : (target.y * (2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-2.0*(blend.z-0.5))) : (target.z * (2.0*blend.z));
-    return temp;
-}
+        // ------ Calculate lighting color ------
+        // Sky color
+        vec3 lightColor = (saturate(normal.y * 0.5 + 0.5)) * vec3(2.5);
 
-//Vivid Light
-vec4 vividLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)/(2.0*(blend.x-0.5))) : (target.x / (1.0-2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)/(2.0*(blend.y-0.5))) : (target.y / (1.0-2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)/(2.0*(blend.z-0.5))) : (target.z / (1.0-2.0*blend.z));
-    return temp;
-}
+        // Apply the light to the texture.
+        finalColor = texColor * lightColor;
 
-//Linear Light
-vec4 linearLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (target.x)+(2.0*(blend.x-0.5)) : (target.x +(2.0*blend.x-1.0));
-    temp.y = (blend.y > 0.5) ? (target.y)+(2.0*(blend.y-0.5)) : (target.y +(2.0*blend.y-1.0));
-    temp.z = (blend.z > 0.5) ? (target.z)+(2.0*(blend.z-0.5)) : (target.z +(2.0*blend.z-1.0));
-    return temp;
-}
+        // calculate the reflection vector for highlights
+        vec3 ref = reflect(rayVec, normal);
+        vec3 refColor = GetReflection(ref);
+        refColor *= vec3(1.0, 0.5, 0.2)*2.5*dot(normal, -rayVec);
+        finalColor += refColor;
 
-//Pin Light
-vec4 pinLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (max (target.x, 2.0*(blend.x-0.5))) : (min(target.x, 2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (max (target.y, 2.0*(blend.y-0.5))) : (min(target.y, 2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (max (target.z, 2.0*(blend.z-0.5))) : (min(target.z, 2.0*blend.z));
-    return temp;
+        // debug visualize length of gradient of distance field to check distance field correctness
+        //finalColor = vec3(0.5) * (length(normalU) / smallVec.x);
+        //finalColor = normal * 0.5 + 0.5;
+	}
+    else
+    {
+        // Our ray trace hit nothing, so draw background.
+        finalColor = GetReflection(rayVec);
+    }
+
+	// output the final color without gamma correction - will do gamma later.
+	return vec3(clamp(finalColor, 0.0, 1.0));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec3 viewDir = rayDirection(90.0, iResolution.xy, fragCoord);
-    vec3 eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
+    vec3 finalColor = RayTrace(fragCoord);
 
-    float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=iMouse.y/iResolution.y*3.14 + PI/2.0;
-    eye = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx));//*7.;
+    // Render 2d text.
+    vec2 uv = fragCoord/iResolution.xy;
+    // Render entire font texture for the first few seconds.
+    float letters = texture(iChannel0, uv, -1.0).x;
+    finalColor = mix(finalColor, vec3(1.0, 1.0, 1.0)*letters, saturate(0.9-iTime*0.3));
 
-    mat3 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    vec4 tex = texture(iChannel4, worldDir);
-
-    // The closest point on the surface to the eyepoint along the view ray
-    vec3 p = eye + worldDir;
-
-    // tex = vec4(p, 1);
-    
-    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
-    // col = vec3(normalize(p.x));
-    // col = vec3(normalize(p.y));
-    // col = vec3(normalize(p.z));
-    // col = p;
-    // col = normalize(p);
-    tex = vec4(col,1);
-    
-    // tex *= 1.999;
-    // tex = floor(tex);
-    // tex /= 1.999;
-
-    float amt = .125;
-    float ratio = 4.;
-    float lines_x = mod(p.x, amt);
-    float lines_y = mod(p.y, amt);
-    float lines_z = mod(p.z, amt);
-
-    float line_color = 0;
-
-    if (lines_x < amt / pow(2.,ratio) || lines_y < amt / pow(2.,ratio) || lines_z < amt / pow(2.,ratio))
-        line_color = .3;
-    else
-        line_color = .5;
-
-    float inter = .5;
-    fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
-    // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = softLight(tex, vec4(line_color));
-    // fragColor = mix(fragColor, tex, .5);
+    fragColor = vec4(sqrt(clamp(finalColor, 0.0, 1.0)),1.0);
 }
+
+
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
