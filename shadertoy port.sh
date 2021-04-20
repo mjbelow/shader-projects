@@ -1,6 +1,8 @@
 #!/bin/sh
 
-cat << EOF > "$1.glsl"
+path=$(echo "$1" | sed -r 's;[^\]+$;;')
+
+cat << EOF > "${path}image.glsl"
 #version 150
 out vec4 FragColor;
 
@@ -19,9 +21,9 @@ uniform float iTime;
 
 EOF
 
-sed '' "$1" >> "$1.glsl"
+sed '' "$1" >> "${path}image.glsl"
 
-cat << EOF >> "$1.glsl"
+cat << EOF >> "${path}image.glsl"
 
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
