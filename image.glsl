@@ -15,16 +15,38 @@ uniform float iTime;
 
 
 /**
- * Part 3 Challenges
- * - Make the camera move up and down while still pointing at the cube
- * - Make the camera roll (stay looking at the cube, and don't change the eye point)
- * - Make the camera zoom in and out
+ * Part 4 Challenges:
+ * - Show the union instead of the intersection
+ * - Show cube - sphere
+ * - Show sphere - cube
+ * - Subtract a new sphere from the cube/sphere intersection to make the top face into a "bowl"
  */
 
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
+
+/**
+ * Constructive solid geometry intersection operation on SDF-calculated distances.
+ */
+float intersectSDF(float distA, float distB) {
+    return max(distA, distB);
+}
+
+/**
+ * Constructive solid geometry union operation on SDF-calculated distances.
+ */
+float unionSDF(float distA, float distB) {
+    return min(distA, distB);
+}
+
+/**
+ * Constructive solid geometry difference operation on SDF-calculated distances.
+ */
+float differenceSDF(float distA, float distB) {
+    return max(distA, -distB);
+}
 
 /**
  * Signed distance function for a cube centered at the origin
@@ -61,7 +83,9 @@ float sphereSDF(vec3 p) {
  * negative indicating inside.
  */
 float sceneSDF(vec3 samplePoint) {
-    return cubeSDF(samplePoint);
+    float sphereDist = sphereSDF(samplePoint / 1.2) * 1.2;
+    float cubeDist = cubeSDF(samplePoint);
+    return intersectSDF(cubeDist, sphereDist);
 }
 
 /**
