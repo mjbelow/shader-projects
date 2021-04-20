@@ -15,11 +15,9 @@ uniform float iTime;
 
 
 /**
- * Part 4 Challenges:
- * - Show the union instead of the intersection
- * - Show cube - sphere
- * - Show sphere - cube
- * - Subtract a new sphere from the cube/sphere intersection to make the top face into a "bowl"
+ * Part 5 Challenges:
+ * - Change the axis of motion of the cube being intersected with the sphere
+ * - Rotate the intersection 
  */
 
 const int MAX_MARCHING_STEPS = 255;
@@ -84,7 +82,7 @@ float sphereSDF(vec3 p) {
  */
 float sceneSDF(vec3 samplePoint) {
     float sphereDist = sphereSDF(samplePoint / 1.2) * 1.2;
-    float cubeDist = cubeSDF(samplePoint);
+    float cubeDist = cubeSDF(samplePoint + vec3(0.0, sin(iTime), 0.0));
     return intersectSDF(cubeDist, sphereDist);
 }
 
