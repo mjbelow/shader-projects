@@ -14,233 +14,246 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI acos(-1.)
-#define PI2 PI * 2.
-#define E 2.71828182845904523536028
-
-/**
- * Rotation matrix around the X axis.
- */
-mat3 rotateX(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(1, 0, 0),
-        vec3(0, c, -s),
-        vec3(0, s, c)
-    );
+void translate(inout mat4 m, in vec3 d){
+	m[3][0] = d.x;
+    m[3][1] = d.y;
+    m[3][2] = d.z;
 }
 
-/**
- * Rotation matrix around the Y axis.
- */
-mat3 rotateY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, 0, s),
-        vec3(0, 1, 0),
-        vec3(-s, 0, c)
-    );
+void scale(inout mat4 m, in vec3 s){
+	m[0][0] = s.x;
+    m[1][1] = s.y;
+    m[2][2] = s.z;
 }
 
-/**
- * Rotation matrix around the Z axis.
- */
-mat3 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3(
-        vec3(c, -s, 0),
-        vec3(s, c, 0),
-        vec3(0, 0, 1)
-    );
+mat4 lookAt(vec3 pos, vec3 target, vec3 up){
+    vec3 d = target - pos;
+    vec3 z = normalize(-d);
+    vec3 x = cross(up, z);
+    vec3 y = cross(z, x);
+    
+    mat4 m = mat4(1.0);
+    
+    m[0][0] = x.x;
+    m[1][0] = x.y;
+    m[2][0] = x.z;
+    m[3][0] = d.x;
+    
+    
+    m[0][1] = y.x;
+    m[1][1] = y.y;
+    m[2][1] = y.z;
+    m[3][1] = d.y;
+    
+    m[0][2] = z.x;
+    m[1][2] = z.y;
+    m[2][2] = z.z;
+    m[3][2] = d.z;
+    
+    return m;
 }
 
-/**
- * Constructive solid geometry intersection operation on SDF-calculated distances.
- */
-float intersectSDF(float distA, float distB) {
-    return max(distA, distB);
+mat4 perspective(float fov, float n, float f, float aspect){
+ 	float a = aspect;
+    float thf = tan(fov/2.0);
+    
+    mat4 m = mat4(0);
+    
+    m[0][0] = 1.0 / (a * thf);
+	m[1][1] = 1.0 / (thf);
+	m[2][2] = - (f + n) / (f - n);
+	m[2][3] = - 1.0;
+	m[3][2] = - (2.0 * f * n) / (f - n);
+    
+    return m;
 }
 
-/**
- * Constructive solid geometry union operation on SDF-calculated distances.
- */
-float unionSDF(float distA, float distB) {
-    return min(distA, distB);
+mat4 rasterToScreen(vec2 raster){
+    mat4 m = mat4(1.);
+    translate(m, vec3(-1.0, -1.0, 0.0));
+    scale(m, vec3(2.0 / raster.x, 2.0/raster.y, 1.0));
+    
+	return m; 
 }
 
-/**
- * Constructive solid geometry difference operation on SDF-calculated distances.
- */
-float differenceSDF(float distA, float distB) {
-    return max(distA, -distB);
+void swap(inout float a, inout float b){
+    float temp = a;
+    a = b;
+    b = temp; 
 }
 
-/**
- * Return the normalized direction to march in from the eye point for a single pixel.
- *
- * fieldOfView: vertical field of view in degrees
- * size: resolution of the output image
- * fragCoord: the x,y coordinate of the pixel in the output image
- */
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-    vec2 xy = fragCoord - size / 2.0;
-    float z = size.y / tan(radians(fieldOfView) / 2.0);
-    return normalize(vec3(xy, -z));
+
+float rng(float seed){
+ 	return fract(sin(seed) * 43758.54531230);   
 }
 
-/**
- * Return a transform matrix that will transform a ray from view space
- * to world coordinates, given the eye point, the camera target, and an up vector.
- *
- * This assumes that the center of the camera is aligned with the negative z axis in
- * view space when calculating the ray marching direction. See rayDirection.
- */
-mat3 viewMatrix(vec3 eye, vec3 center, vec3 up) {
-    // Based on gluLookAt man page
-    vec3 f = normalize(center - eye);
-    vec3 s = normalize(cross(f, up));
-    vec3 u = cross(s, f);
-    return mat3(s, u, -f);
+#define PI 3.1415926535897932384626433832795
+
+struct Camera{
+	mat4 cameraToWorld;
+	mat4 cameraToScreen;
+	mat4 rasterToCamera;
+	mat4 screenToRaster;
+	mat4 rasterToScreen;
+};    
+    
+
+struct Ray{
+	vec3 o;
+    vec3 d;
+    float tMax;
+};
+    
+struct Sphere{
+	vec3 c;
+    float r;
+};
+    
+struct Box{
+    vec3 min;
+    vec3 max;
+};
+    
+struct Plane{
+  vec3 n;
+  float d;
+};
+
+
+    
+void initCamera(in mat4 view, out Camera cam){
+    float a = iResolution.x/iResolution.y;
+    mat4 projection = perspective(PI/3.0, 1.0, 1000.0, a);
+	cam.rasterToScreen = rasterToScreen(iResolution.xy);
+	cam.screenToRaster = inverse(cam.rasterToCamera);
+	cam.cameraToScreen =  projection;
+	cam.rasterToCamera = inverse(projection) * cam.rasterToScreen;
+	cam.cameraToWorld =  inverse(view);
 }
 
-//Multiply
-vec4 multiply(vec4 a, vec4 b){
-    return a * b;
+void initRay(in Camera cam, out Ray ray, vec2 pos){
+    float a = iResolution.x/iResolution.y;
+   
+    vec3 p = (cam.rasterToCamera * vec4(pos, 0, 1)).xyz;
+	ray.o = vec3(0);
+	ray.d = normalize(p);
+	ray.tMax = 1000.0;
+    
+    
+    ray.o = (cam.cameraToWorld * vec4(ray.o, 1)).xyz;
+	ray.d = mat3(cam.cameraToWorld) * ray.d;
+	ray.d = normalize(ray.d);
+    
+}
+ 
+
+bool intersectsPlane(Ray ray, Plane p, out float t){
+    t = p.d - dot(p.n, ray.o)/dot(p.n, ray.d);
+    
+    return t > 0.0 && t < ray.tMax;
 }
 
-//Screen
-vec4 screen(vec4 a, vec4 b){
-    return 1 - ( (1 - a) * (1 - b) );
+bool intersectsSphere(Ray ray, Sphere s, out float t){
+    
+    vec3 m = ray.o - s.c;
+    float a = dot(ray.d, ray.d);
+    float b = dot(m, ray.d);
+    float c = dot(m, m) - s.r * s.r;
+    
+    float discr = b * b - a * c;
+    if(discr < 0.0) return false;
+    
+    float sqrtDiscr = sqrt(discr);
+
+	float t0 = (-b - sqrtDiscr) / a;
+	float t1 = (-b + sqrtDiscr) / a;
+	if (t0 > t1) swap(t0, t1);
+    t = t0;
+    return t > 0. && t < ray.tMax;
 }
 
-//Color Burn
-vec4 colorBurn (vec4 target, vec4 blend){
-    return 1.0 - (1.0 - target)/ blend;
+bool intersectBox(Ray ray, Box b, out float t){
+    vec3 tmin = (b.min - ray.o)/ray.d;
+    vec3 tMax = (b.max - ray.o)/ray.d;
+   
+    vec3 t0 = min(tmin, tMax);
+    vec3 t1 = max(tmin, tMax);
+    
+    float tNear = max(t0.x, max(t0.y, t0.z));
+    float tFar = min(t1.x, max(t1.y, t1.z));
+    
+    if(tNear > ray.tMax) return false;
+    
+    t = tNear;
+    return tNear < tFar;
 }
 
-//Linear Burn
-vec4 linearBurn (vec4 target, vec4 blend){
-    return target + blend - 1.0;
+vec3 shade(Ray ray, float t, Sphere s, vec3 lPos, vec3 mat){
+    vec3 p = ray.o + ray.d * t;
+    vec3 n = normalize(p - s.c);
+    vec3 l = lPos - p;
+    return max(0., dot(n, l)) * vec3(1) * mat;
 }
 
-//Color Dodge
-vec4 colorDodge (vec4 target, vec4 blend){
-    return target / (1.0 - blend);
-}
 
-//Linear Dodge
-vec4 linearDodge (vec4 target, vec4 blend){
-    return target + blend;
-}
-
-//Overlay
-vec4 overlay (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (target.x > 0.5) ? (1.0-(1.0-2.0*(target.x-0.5))*(1.0-blend.x)) : (2.0*target.x)*blend.x;
-    temp.y = (target.y > 0.5) ? (1.0-(1.0-2.0*(target.y-0.5))*(1.0-blend.y)) : (2.0*target.y)*blend.y;
-    temp.z = (target.z > 0.5) ? (1.0-(1.0-2.0*(target.z-0.5))*(1.0-blend.z)) : (2.0*target.z)*blend.z;
-    return temp;
-}
-
-//Soft Light
-vec4 softLight (vec4 target, vec4 blend){
- vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-(blend.x-0.5))) : (target.x * (blend.x + 0.5));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-(blend.y-0.5))) : (target.y * (blend.y + 0.5));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-(blend.z-0.5))) : (target.z * (blend.z + 0.5));
-    return temp;
-}
-
-//Hard Light
-vec4 hardLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)*(1.0-2.0*(blend.x-0.5))) : (target.x * (2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)*(1.0-2.0*(blend.y-0.5))) : (target.y * (2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)*(1.0-2.0*(blend.z-0.5))) : (target.z * (2.0*blend.z));
-    return temp;
-}
-
-//Vivid Light
-vec4 vividLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (1.0-(1.0-target.x)/(2.0*(blend.x-0.5))) : (target.x / (1.0-2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (1.0-(1.0-target.y)/(2.0*(blend.y-0.5))) : (target.y / (1.0-2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (1.0-(1.0-target.z)/(2.0*(blend.z-0.5))) : (target.z / (1.0-2.0*blend.z));
-    return temp;
-}
-
-//Linear Light
-vec4 linearLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (target.x)+(2.0*(blend.x-0.5)) : (target.x +(2.0*blend.x-1.0));
-    temp.y = (blend.y > 0.5) ? (target.y)+(2.0*(blend.y-0.5)) : (target.y +(2.0*blend.y-1.0));
-    temp.z = (blend.z > 0.5) ? (target.z)+(2.0*(blend.z-0.5)) : (target.z +(2.0*blend.z-1.0));
-    return temp;
-}
-
-//Pin Light
-vec4 pinLight (vec4 target, vec4 blend){
-    vec4 temp;
-    temp.x = (blend.x > 0.5) ? (max (target.x, 2.0*(blend.x-0.5))) : (min(target.x, 2.0*blend.x));
-    temp.y = (blend.y > 0.5) ? (max (target.y, 2.0*(blend.y-0.5))) : (min(target.y, 2.0*blend.y));
-    temp.z = (blend.z > 0.5) ? (max (target.z, 2.0*(blend.z-0.5))) : (min(target.z, 2.0*blend.z));
-    return temp;
+float sinc( float x, float k )
+{
+    float a = PI * (k*x-1.0);
+    return sin(a)/a;
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec3 viewDir = rayDirection(90.0, iResolution.xy, fragCoord);
-    vec3 eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
-
-    float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=iMouse.y/iResolution.y*3.14 + PI/2.0;
-    eye = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx));//*7.;
-
-    mat3 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    vec4 tex = texture(iChannel4, worldDir);
-
-    // The closest point on the surface to the eyepoint along the view ray
-    vec3 p = eye + worldDir;
-
-    // tex = vec4(p, 1);
     
-    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
-    // col = vec3(normalize(p.x));
-    // col = vec3(normalize(p.y));
-    // col = vec3(normalize(p.z));
-    // col = p;
-    // col = normalize(p);
-    tex = vec4(col,1);
+    Camera cam;
+    Ray ray;
+    mat4 view = lookAt(vec3(0, 0, 5), vec3(0), vec3(0, 1, 0));
     
-    // tex *= 1.999;
-    // tex = floor(tex);
-    // tex /= 1.999;
+    initCamera(view, cam);
+    initRay(cam, ray, fragCoord);
+    
+    Plane p;
+    p.n = vec3(0, 1, 0);
+    p.d = -3.0;
+    
+    vec3 color = vec3(0);
+    
+    float t;
+    Sphere s;
+    
+    s.c = vec3(0);
+    s.r = 1.0;
+    
+    Sphere light;
+    light.c = vec3(1.2, 1.2, 0);
+    light.r = 0.1; 
+    light.c.x = cos(iTime);
+    light.c.z = 3. * sin(iTime);
+    
+    Box b;
+    b.min = vec3(-1.2, -1.2, 0);
+    b.max = vec3(1.2, 1.2, 0);
+    
+    if(intersectsSphere(ray, light, t)){
+     	color = vec3(1);   
+    }
+        
+    if(intersectsSphere(ray, s, t)){
+        vec3 mat = vec3(1, 0, 0);
+        color = shade(ray, t, s, light.c, mat);
+    }
+    
+ //   if(intersectBox(ray, b, t)){
+ //    	vec3 mat = vec3(0, 1, 0);
+ //       color = mat;
+ //   }
+    
+    if(intersectsPlane(ray, p, t)){
+        color = vec3(0, 0, 1);
+    }
 
-    float amt = .125;
-    float ratio = 4.;
-    float lines_x = mod(p.x, amt);
-    float lines_y = mod(p.y, amt);
-    float lines_z = mod(p.z, amt);
 
-    float line_color = 0;
-
-    if (lines_x < amt / pow(2.,ratio) || lines_y < amt / pow(2.,ratio) || lines_z < amt / pow(2.,ratio))
-        line_color = .3;
-    else
-        line_color = .5;
-
-    float inter = .5;
-    fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
-    // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = softLight(tex, vec4(line_color));
-    // fragColor = mix(fragColor, tex, .5);
+    fragColor = vec4(color, 1);
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
