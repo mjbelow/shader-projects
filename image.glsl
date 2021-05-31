@@ -240,6 +240,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
 
     fragColor = softLight(tex, vec4(line_color));
+    
+    float d = p.x;
+    d = max(p.y,d);
+    d = max(p.z,d);
+    
+    d *= 20.;
+    d = floor(d);
+    d /= 20.;
+    
+    
+    fragColor = softLight(fragColor, vec4(vec3(d),1.));
     // fragColor = mix(fragColor, tex, .5);
 }
 
