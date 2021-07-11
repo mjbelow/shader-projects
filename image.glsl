@@ -190,68 +190,72 @@ vec4 pinLight (vec4 target, vec4 blend){
     return temp;
 }
 
+float f(float x)
+{
+    // return sin(x);
+    return pow(x,2)-pow(2,x);
+}
+
+float fi(float x)
+{
+    return (f(x + .1)-f(x)) / .1;
+}
+
+float fii(float x)
+{
+    return (fi(x + .1)-fi(x)) / .1;
+}
+
+float fiii(float x)
+{
+    return (fii(x + .1)-fii(x)) / .1;
+}
+
+#define epsilon .001
+#define spacing 32.
+#define width 1.
+#define PI acos(-1.)
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec3 viewDir = rayDirection(90.0, iResolution.xy, fragCoord);
-    vec3 eye = vec3(8.0, 5.0 * sin(0.2 * iTime), 7.0);
-
-    float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=iMouse.y/iResolution.y*3.14 + PI/2.0;
-    eye = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx));//*7.;
-
-    mat3 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    vec4 tex = texture(iChannel4, worldDir);
-
-    // The closest point on the surface to the eyepoint along the view ray
-    vec3 p = eye + worldDir;
-
-    // tex = vec4(p, 1);
+    vec2 uv = (2.*fragCoord-iResolution.xy) / iResolution.xy;
     
-    vec3 col = 0.5 + 0.5*cos(iTime+p+vec3(0,PI2/3.,PI2/3.*2.));
-    // col = vec3(normalize(p.x));
-    // col = vec3(normalize(p.y));
-    // col = vec3(normalize(p.z));
-    // col = p;
-    // col = normalize(p);
-    tex = vec4(col,1);
-    
-    // tex *= 1.999;
-    // tex = floor(tex);
-    // tex /= 1.999;
-
-    float amt = .125;
-    float ratio = 4.;
-    float lines_x = mod(p.x, amt);
-    float lines_y = mod(p.y, amt);
-    float lines_z = mod(p.z, amt);
-
-    float line_color = 0;
-
-    if (lines_x < amt / pow(2.,ratio) || lines_y < amt / pow(2.,ratio) || lines_z < amt / pow(2.,ratio))
-        line_color = .3;
-    else
-        line_color = .5;
-
-    float inter = .5;
-    fragColor = (tex * (1.-inter)) + (vec4(line_color) * inter);
-    // fragColor = (vec4(0) * (1.-inter)) + (vec4(line_color) * inter);
-
-    fragColor = softLight(tex, vec4(line_color));
-    
-    float d = p.x;
-    d = max(p.y,d);
-    d = max(p.z,d);
-    
-    d *= 20.;
-    d = floor(d);
-    d /= 20.;
+    // uv = 10*uv;
+    uv = PI*uv;
+    uv.x *= 2.;
+    // uv.x *= 2.;
+    // uv.y 
+    // uv*=2.;
+    // uv.x -= PI;
+    // uv.y *= -1.;
     
     
-    fragColor = softLight(fragColor, vec4(vec3(d),1.));
-    // fragColor = mix(fragColor, tex, .5);
+    float d = f(uv.x);
+    
+    fragColor = vec4(.25);
+    // use step(1., f) instead of round(f) for width to work as expected
+    // not using round also doesn't require clamp
+    float h = step(1., mod(fragCoord.x/width,spacing/width));
+    // h = clamp(h,0.,1.);
+    float v = step(1., mod(fragCoord.y/width,spacing/width));
+    // v = clamp(v,0.,1.);
+    
+    fragColor *= h*v;
+    
+    // if (h == v)
+        // fragColor = vec4(.5);
+    
+    fragCoord.y = (iResolution.y - fragCoord.y) * -1.;
+    
+    float grid = step(1.,mod(fragCoord.y/width,spacing/width)) * step(1.,mod(fragCoord.x/width,spacing/width));
+    float grid2 = step(1.,mod(fragCoord.y/width+1.,spacing/width)) * step(1.,mod(fragCoord.x/width-1.,spacing/width));
+    fragColor = vec4(.25) * vec4(grid);
+    if(grid2 < 1.)
+        fragColor = screen(fragColor, vec4(.25));
+    
+    if (d > (uv.y - .05) && d < (uv.y + .05))
+        fragColor = vec4(1,.5,0,1);
+        // fragColor = screen(fragColor, vec4(1,.5,0,1));
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
