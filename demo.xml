@@ -14,4 +14,9 @@
         gh_mesh.update_quad_size(fullscreen_quad, winW, winH)
         ]]></raw_data>
   </script>
+	<script name="terminate_scene" run_mode="TERMINATE" >
+		<raw_data><![CDATA[
+gh_imgui.terminate()
+		]]></raw_data>
+	</script> 
 </glsl_hacker>

@@ -9,11 +9,66 @@ PF_F32_R = 7
 PF_U8_R = 11
 PF_U8_RG = 12
 
+local lib_dir = gh_utils.get_lib_dir() 		
+
+dofile(lib_dir .. "lua/libfont/libfont1.lua")
+dofile(lib_dir .. "lua/imgui.lua")
 local gen_mipmaps = 0
 
+
 winW, winH = gh_window.getsize()
+mouse_wheel = 0
+g_radio_button1_active = 1
+g_radio_button2_active = 0
+g_radio_button3_active = 0
 
+gray_dark_top_1 = 0
+gray_dark_top_2 = 0
+gray_light_top_1 = 1
+gray_light_top_2 = 1
+red_dark_top_1 = 0
+red_dark_top_2 = 0
+red_light_top_1 = 1
+red_light_top_2 = 1
+green_dark_top_1 = 0
+green_dark_top_2 = 0
+green_light_top_1 = 1
+green_light_top_2 = 1
+blue_dark_top_1 = 0
+blue_dark_top_2 = 0
+blue_light_top_1 = 1
+blue_light_top_2 = 1
+gray_dark_bottom_1 = 0
+gray_dark_bottom_2 = 0
+gray_light_bottom_1 = 1
+gray_light_bottom_2 = 1
+red_dark_bottom_1 = 0
+red_dark_bottom_2 = 0
+red_light_bottom_1 = 1
+red_light_bottom_2 = 1
+green_dark_bottom_1 = 0
+green_dark_bottom_2 = 0
+green_light_bottom_1 = 1
+green_light_bottom_2 = 1
+blue_dark_bottom_1 = 0
+blue_dark_bottom_2 = 0
+blue_light_bottom_1 = 1
+blue_light_bottom_2 = 1
 
+show = false
+
+gh_imgui.init()
+
+combo_box_index = gh_imgui.combo_box_create("##combobox01")
+gh_imgui.combo_box_add_item(combo_box_index, "1/ AAAAAA")
+gh_imgui.combo_box_add_item(combo_box_index, "2/ BBBB")
+gh_imgui.combo_box_add_item(combo_box_index, "3/ CCCCCC")
+gh_imgui.combo_box_add_item(combo_box_index, "4/ DDDD")
+
+-- LEFT_BUTTON = 1
+-- mouse_left_button = gh_input.mouse_get_button_state(LEFT_BUTTON) 
+-- RIGHT_BUTTON = 2
+-- mouse_right_button = gh_input.mouse_get_button_state(RIGHT_BUTTON) 
 
 
 camera_ortho = gh_camera.create_ortho(-winW/2, winW/2, -winH/2, winH/2, 1.0, 10.0)
@@ -52,3 +107,5 @@ BLEND_FACTOR_DST_COLOR = 6
 BLEND_FACTOR_DST_ALPHA = 7
 BLEND_FACTOR_SRC_COLOR = 8
 BLEND_FACTOR_ONE_MINUS_SRC_COLOR = 9
+
+g_is_imgui_window_hovered = 0
