@@ -16,7 +16,7 @@ uniform float iTime;
 
 bool stroke(float a)
 {
-  return (a < 1. && a > .9);
+  return (a < .9 && a > .8);
 }
 
 float sdf_circle(vec2 uv, float r)
@@ -35,25 +35,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec3 col = vec3(0);
 
-    vec2 uv2 = uv;
-
-    //uv.x += 1.;
-    //uv2.x -= 1.;
+    uv *= 2.;
     
-    float radius = sin(iTime*.5);
+    uv = fract(uv);
     
-    float circle1 = sdf_circle(uv+vec2( 1,  1), radius);
-    float circle2 = sdf_circle(uv+vec2(-1, -1), radius);
-    float circle3 = sdf_circle(uv+vec2( 1, -1), radius);
-    float circle4 = sdf_circle(uv+vec2(-1,  1), radius);
+    uv += vec2(-.5);
+    
+    float r = sin(iTime)*.5-.5;
+    
+    float circle1 = sdf_circle(uv, r);
     
     
-    if(stroke(
-    min(min(min(
-      circle1, circle2
-      ), circle3), circle4)
-    )
-    )
+    if(stroke(circle1))
         col.r=1.;
 
     // Output to screen
