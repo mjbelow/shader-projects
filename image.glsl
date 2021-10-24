@@ -30,6 +30,16 @@ float sdfCircle(vec2 p, float r)
     return length(p) - r;
 }
 
+float f(float v)
+{
+return pow(v,3.);
+}
+
+float f_dash(float v)
+{
+return 3.*pow(v,2.);
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
@@ -46,14 +56,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Output to screen
     fragColor = vec4(col,1.0);
     
-    float v = sin(iTime*.25)*TAU*2.;
+    float v = sin(iTime*.5)*PI;
     
-    float uv_angle = (uv.x+uv.y*cos(v));
+    float uv_angle = (uv.x+uv.y*f_dash(v));
     //if(sin(uv.x*TAU)*.5+.5 > uv.y)
     if(
-    stroke(sin(uv.x),uv.y, .2)
+    stroke(f(uv.x),uv.y, .2)
     ||
-    (stroke(cos(v)*(uv.x-v)+sin(v),uv.y, .1) && mod(uv_angle,1.) < .5)
+    (stroke(f_dash(v)*(uv.x-v)+f(v),uv.y, .1) && mod(uv_angle,1.) < .5)
     ||
     stroke(0.,uv.y, .05)
     ||
@@ -61,7 +71,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     )
         fragColor = vec4(0);
 
-    float d = sdfCircle(vec2(v, sin(v)) - uv, 0.25);
+    float d = sdfCircle(vec2(v, f(v)) - uv, 0.25);
         
     if(d < 1.)
     {
