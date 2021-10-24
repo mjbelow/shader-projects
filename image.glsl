@@ -16,7 +16,7 @@ uniform float iTime;
 
 bool stroke(float a)
 {
-  return (.5 < a ^^ a < 1.);
+  return (a < 1. && a > .95);
 }
 
 float sdf_circle(vec2 uv, float r)
@@ -28,24 +28,26 @@ float sdf_circle(vec2 uv, float r)
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = (fragCoord)/iResolution.y;
+    vec2 uv = (fragCoord*2.-iResolution.xy)/iResolution.y;
 
     // Time varying pixel color
     //vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
 
-    vec3 col = vec3(0);
+    vec3 col = vec3(.8);
 
-    uv *= 8.;
+    uv *= 2.;
     
-    uv = fract(uv)-vec2(.5);
+    uv = fract(uv);
     
-    float r = sin(iTime)*.5-.5;
+    uv += vec2(-.5);
+    
+    float r = tan(iTime*.25)*.25-.75;
     
     float circle1 = sdf_circle(uv, r);
     
     
     if(stroke(circle1))
-        col.r=1.;
+        col = vec3(1,0,0);
 
     // Output to screen
     fragColor = vec4(col,1.0);
