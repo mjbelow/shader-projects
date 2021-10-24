@@ -14,8 +14,14 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define PI acos(-1.)
-#define TAU 2.*PI
+const float EPSILON = 0.2;
+const float PI = acos(-1.);
+const float TAU = 2.0*PI;
+
+bool stroke(float a, float b)
+{
+    return a < b+EPSILON && a > b-EPSILON;
+}
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
@@ -24,8 +30,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //fragCoord.x = iResolution.x - fragCoord.x;
     
     vec2 uv = fragCoord.xy/iResolution.xy;
-    uv.x = (fragCoord.x*2.-1.*iResolution.x)/iResolution.x;
-    uv.y = (fragCoord.y*2.-1.*iResolution.y)/iResolution.y;
+    uv.x = (fragCoord.x*2.-1.*iResolution.x)/iResolution.x*TAU;
+    uv.y = (fragCoord.y*2.-1.*iResolution.y)/iResolution.y*TAU;
 
     // Time varying pixel color
     vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
@@ -34,7 +40,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     fragColor = vec4(col,1.0);
     
     //if(sin(uv.x*TAU)*.5+.5 > uv.y)
-    if(pow(uv.x-iTime,3.) > uv.y)
+    if(stroke(asin(uv.x),uv.y))
         fragColor = vec4(0);
     
     //fragColor = texture(iChannel0, uv);
