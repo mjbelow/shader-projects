@@ -14,8 +14,8 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
-#define p 20.5
-#define d 1.
+#define p 5.
+#define d .5
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
@@ -31,7 +31,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //uv = 1. - uv;
     
     uv *= p;
-    uv = ceil(uv);
+    uv = round(uv);
     uv /= p;
     
     //col = vec3((uv.y+uv.x)/2.);
