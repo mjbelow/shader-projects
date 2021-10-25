@@ -20,7 +20,7 @@ uniform float iTime;
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = (fragCoord*2./d-iResolution.xy*1./d)/iResolution.y;
+    vec2 uv = (fragCoord*2./d-iResolution.xy*1./d)/iResolution.xy;
     vec2 uv2 = uv;
     //uv2 = 1. - uv2;
 
@@ -40,7 +40,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     //col = vec3(abs((uv.x+uv.y)/2.));
     
-    col = vec3((abs(uv.x)+abs(uv.y))/2.);
+    col = vec3((abs(uv.x+uv.y))/2.);
     
     //col *= vec3(0.5,0.75,1);
     // Output to screen
