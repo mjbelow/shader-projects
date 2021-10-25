@@ -14,10 +14,13 @@ uniform vec2 iResolution;
 uniform float iTime;
 
 
+#define p 20.5
+#define d 1.
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = (fragCoord*2.-iResolution.xy*1.)/iResolution.y;
+    vec2 uv = (fragCoord*2./d-iResolution.xy*1./d)/iResolution.y;
     vec2 uv2 = uv;
     //uv2 = 1. - uv2;
 
@@ -27,9 +30,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //uv.x = 1. - uv.x;
     //uv = 1. - uv;
     
-    uv *= 10.99;
-    uv = floor(uv);
-    uv /= 10.99;
+    uv *= p;
+    uv = ceil(uv);
+    uv /= p;
     
     //col = vec3((uv.y+uv.x)/2.);
     
