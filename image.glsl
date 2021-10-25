@@ -22,10 +22,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Time varying pixel color
     vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
     
-    col = vec3((uv.x*cos(iTime)+uv.y*sin(iTime))/2.);
+    float f = (uv.x*cos(iTime)+uv.y*sin(iTime))/2.;
 
-    if(col.r > .0)
+    float spacing = .1;
+
+    if(mod(f, spacing) < (spacing/2.))
         col = vec3(1,0,0);
+    else
+        col = vec3(f);
 
     // Output to screen
     fragColor = vec4(col,1.0);
