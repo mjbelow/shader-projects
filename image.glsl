@@ -41,12 +41,26 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     uv.x = x * 2.;
     
-    if(uv.x > .5)
+    float f = .75;
+    
+    if (uv.x > 1. + .66 + f)
+    {
+      // fragColor = vec4(1,0,0,1);
+      // return;
+      uv.x = x * 5. - (1. + .66 + f);
+    }
+    else if(uv.x > 1. + .3333)
+    {
+    
+      uv.x = x * 4. - 1.333;
+    }
+    else if(uv.x > .5)
     {
     // fragColor = vec4(1,0,0,1);
     // return;
       uv.x = x * 3.-0.5;
     }
+    
     // Time varying pixel color
     //vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
     
