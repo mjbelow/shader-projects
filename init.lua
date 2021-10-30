@@ -55,7 +55,8 @@ blue_dark_bottom_2 = 0
 blue_light_bottom_1 = 1
 blue_light_bottom_2 = 1
 
-show = false
+show_imgui = true
+toggle = true
 
 gh_imgui.init()
 

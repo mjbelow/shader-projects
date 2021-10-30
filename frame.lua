@@ -72,6 +72,19 @@ local mouse_quad_x = mouse_x - winW/2
 local mouse_quad_y = -(mouse_y - winH/2) 
 
 
+  if (gh_utils.get_platform() == 1) then
+    gh_window.keyboard_update_buffer(0)
+  end
+
+  local KC_SPACE = 57
+  if ((toggle) and (gh_input.keyboard_is_key_down(KC_SPACE) == 1)) then
+    toggle = false
+    show_imgui = not show_imgui
+  end
+  if (gh_input.keyboard_is_key_down(KC_SPACE) == 0) then
+    toggle = true
+  end
+
 initial_state = 0
 local min_value = 0
 local max_value = 1.0
@@ -80,6 +93,7 @@ imgui_frame_begin_v2(mouse_x, mouse_y)
 
 
 
+if show_imgui then
 
 imgui_window_begin_v1("Top Layer", 500, 500, 0, 0)
 
@@ -180,6 +194,8 @@ blue_light_bottom_2 = gh_imgui.slider_1f("blue_light_bottom_2", blue_light_botto
 
 
 imgui_window_end()
+
+end
 
 gh_imgui.frame_end()
 
