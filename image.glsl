@@ -43,18 +43,21 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     float f = .75;
     
-    if (uv.x > 1. + .66 + f)
+    if (uv.x > (1./2.*2.) + (1./3.*2.) + (1./4.*2.) + (1./5.*2.) + 10.000001)
     {
-      // fragColor = vec4(1,0,0,1);
-      // return;
+      fragColor = vec4(1,0,0,1);
+      return;
+    }
+    else if (uv.x > (1./2.*2.) + (1./3.*2.) + f)
+    {
       uv.x = x * 5. - (1. + .66 + f);
     }
-    else if(uv.x > 1. + .3333)
+    else if(uv.x > (1./2.*2.) + (1./3.))
     {
     
       uv.x = x * 4. - 1.333;
     }
-    else if(uv.x > .5)
+    else if(uv.x > (1./2.))
     {
     // fragColor = vec4(1,0,0,1);
     // return;
@@ -76,6 +79,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //if(y % x == 0)
         col = vec3(1);
     }
+    
+    if(x > (1./2.) + (1./3.) + (1./4.) + (1./5.) + (1./6./2.))
+    {
+    col *= vec3(1,0,0);
+    }
+    
     // Output to screen
     fragColor = vec4(col,1.0);
 }
