@@ -118,31 +118,6 @@ blue_light_top_1 = gh_imgui.slider_1f("blue_light_top_1", blue_light_top_1, min_
 blue_light_top_2 = gh_imgui.slider_1f("blue_light_top_2", blue_light_top_2, min_value, max_value, power)
 
 
-
-
-
-	if (gh_imgui.radio_button("radio button 01##radiobutton01", g_radio_button1_active) == 1) then
-		g_radio_button1_active = 1
-		g_radio_button2_active = 0
-		g_radio_button3_active = 0
-		g_radiobutton_str = "Radio button 1 selected"
-	end
-	if (gh_imgui.radio_button("radio button 02##radiobutton02", g_radio_button2_active) == 1) then
-		g_radio_button1_active = 0
-		g_radio_button2_active = 1
-		g_radio_button3_active = 0
-		g_radiobutton_str = "Radio button 2 selected"
-	end
-	if (gh_imgui.radio_button("radio button 03##radiobutton03", g_radio_button3_active) == 1) then
-		g_radio_button1_active = 0
-		g_radio_button2_active = 0
-		g_radio_button3_active = 1
-		g_radiobutton_str = "Radio button 3 selected"
-	end
-
-
-
-
 imgui_window_end()
 
 imgui_window_begin_v1("Mix", 500, 500, 500, 0)
@@ -152,6 +127,18 @@ imgui_window_begin_v1("Mix", 500, 500, 500, 0)
 	bottom_layer_option = gh_imgui.combo_box_draw(combo_box_index2, 1)
 	transition_layer_option = gh_imgui.combo_box_draw(combo_box_index3, 2)
 
+
+	gh_imgui.text("\n\nBlend Top and Bottom Layer to... ")
+
+	if (gh_imgui.radio_button("Bottom Layer##bottom_layer", g_radio_button1_active) == 1) then
+		g_radio_button1_active = 1
+		g_radio_button2_active = 0
+	end
+	if (gh_imgui.radio_button("Transition Layer##transition_layer", g_radio_button2_active) == 1) then
+		g_radio_button1_active = 0
+		g_radio_button2_active = 1
+	end
+  
 
 imgui_window_end()
 
@@ -192,28 +179,6 @@ blue_light_bottom_1 = gh_imgui.slider_1f("blue_light_bottom_1", blue_light_botto
 blue_light_bottom_2 = gh_imgui.slider_1f("blue_light_bottom_2", blue_light_bottom_2, min_value, max_value, power)
 
 
-
-
-
-	if (gh_imgui.radio_button("radio button 01##radiobutton01", g_radio_button1_active) == 1) then
-		g_radio_button1_active = 1
-		g_radio_button2_active = 0
-		g_radio_button3_active = 0
-		g_radiobutton_str = "Radio button 1 selected"
-	end
-	if (gh_imgui.radio_button("radio button 02##radiobutton02", g_radio_button2_active) == 1) then
-		g_radio_button1_active = 0
-		g_radio_button2_active = 1
-		g_radio_button3_active = 0
-		g_radiobutton_str = "Radio button 2 selected"
-	end
-	if (gh_imgui.radio_button("radio button 03##radiobutton03", g_radio_button3_active) == 1) then
-		g_radio_button1_active = 0
-		g_radio_button2_active = 0
-		g_radio_button3_active = 1
-		g_radiobutton_str = "Radio button 3 selected"
-	end
-  
 imgui_window_end()
 
 gh_imgui.frame_end()
@@ -221,7 +186,12 @@ gh_imgui.frame_end()
 
 gh_gpu_program.uniform1i(gpu_prog_01, "top_layer_option", top_layer_option)
 gh_gpu_program.uniform1i(gpu_prog_01, "bottom_layer_option", bottom_layer_option)
-gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", transition_layer_option)
+
+if(g_radio_button1_active == 1) then
+  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", bottom_layer_option)
+else
+  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", transition_layer_option)
+end
 
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_1", gray_dark_top_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_2", gray_dark_top_2)
