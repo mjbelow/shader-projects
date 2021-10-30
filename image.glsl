@@ -47,7 +47,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float STAGE4 = STAGE3 + 1./4.;
     float STAGE5 = STAGE4 + 1./5.;
  
-    if(x > STAGE4)
+    if(x > STAGE5)
+      uv.x = x*6. - (STAGE2 + STAGE3 + STAGE4 + STAGE5);
+    else if(x > STAGE4)
       uv.x = x*5. - (STAGE2 + STAGE3 + STAGE4);
     else if(x > STAGE3)
       uv.x = x*4. - (STAGE2 + STAGE3);
@@ -73,7 +75,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         col = vec3(1);
     }
 
-    if(x > STAGE4)
+    if(x > STAGE5)
     {
     col *= vec3(1,0,0);
     }
