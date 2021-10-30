@@ -32,6 +32,8 @@ return true;
 return false;
 }
 
+const int N = 7;
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
@@ -47,38 +49,54 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float STAGE4 = STAGE3 + 1./4.;
     float STAGE5 = STAGE4 + 1./5.;
     float STAGE6 = STAGE5 + 1./6.;
- 
-    if(x > STAGE6)
-      uv.x = x*7. - (STAGE2 + STAGE3 + STAGE4 + STAGE5 + STAGE6);
-    else if(x > STAGE5)
-      uv.x = x*6. - (STAGE2 + STAGE3 + STAGE4 + STAGE5);
-    else if(x > STAGE4)
-      uv.x = x*5. - (STAGE2 + STAGE3 + STAGE4);
-    else if(x > STAGE3)
-      uv.x = x*4. - (STAGE2 + STAGE3);
-    else if(x > STAGE2)
+    
+    
+    float STAGE[N];
+    float STAGE_OFFSET[N];
+    
+    STAGE[0] = 1. / 2.;
+    STAGE_OFFSET[0] = 1. / 2.;
+    
+    for(int i = 1; i < N; i++)
     {
-    // {
-    // fragColor = vec4(1,0,0,1);
-    // return;
-      uv.x = x * 3 - STAGE2;
+        float f = i + 2;
+        STAGE[i] = 1. / f + STAGE[i - 1];
+        
+        STAGE_OFFSET[i] = 0;
+        
+        for(int j = i; j >= 0; j--)
+          STAGE_OFFSET[i] += STAGE[j];
     }
     
-    // Time varying pixel color
-    //vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
+    for(int i = (N-1); i >= 0; i--)
+    {
+      if(x > STAGE[i])
+      {
+        float f = i + 3;
+        uv.x = x * (i + 3) - STAGE_OFFSET[i];
+        break;
+      }
+    }
+ 
+    // if(x > STAGE[4])
+      // uv.x = x * 7 - (STAGE[0] + STAGE[1] + STAGE[2] + STAGE[3] + STAGE[4]);
+    // else if(x > STAGE[3])
+      // uv.x = x * 6 - (STAGE[0] + STAGE[1] + STAGE[2] + STAGE[3]);
+    // else if(x > STAGE[2])
+      // uv.x = x * 5 - (STAGE[0] + STAGE[1] + STAGE[2]);
+    // else if(x > STAGE[1])
+      // uv.x = x * 4 - STAGE_OFFSET[1];
+    // else if(x > STAGE[0])
+      // uv.x = x * 3 - STAGE_OFFSET[0];
     
     vec3 col = vec3(0.05);
-    
-    
-    
-    
 
     if(stroke(uv))
     {
         col = vec3(1);
     }
 
-    if(x > STAGE6)
+    if(x > STAGE[N-1])
     {
     col *= vec3(1,0,0);
     }
