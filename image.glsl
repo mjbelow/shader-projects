@@ -32,7 +32,7 @@ return true;
 return false;
 }
 
-const int N = 7;
+const int N = 30;
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
@@ -42,14 +42,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float x = uv.x;
 
     uv.x = x * 2.;
-
-    
-    float STAGE2 = 1./2.;
-    float STAGE3 = STAGE2 + 1./3.;
-    float STAGE4 = STAGE3 + 1./4.;
-    float STAGE5 = STAGE4 + 1./5.;
-    float STAGE6 = STAGE5 + 1./6.;
-    
     
     float STAGE[N];
     float STAGE_OFFSET[N];
@@ -77,17 +69,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         break;
       }
     }
- 
-    // if(x > STAGE[4])
-      // uv.x = x * 7 - (STAGE[0] + STAGE[1] + STAGE[2] + STAGE[3] + STAGE[4]);
-    // else if(x > STAGE[3])
-      // uv.x = x * 6 - (STAGE[0] + STAGE[1] + STAGE[2] + STAGE[3]);
-    // else if(x > STAGE[2])
-      // uv.x = x * 5 - (STAGE[0] + STAGE[1] + STAGE[2]);
-    // else if(x > STAGE[1])
-      // uv.x = x * 4 - STAGE_OFFSET[1];
-    // else if(x > STAGE[0])
-      // uv.x = x * 3 - STAGE_OFFSET[0];
     
     vec3 col = vec3(0.05);
 
