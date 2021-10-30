@@ -43,25 +43,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     float f = .75;
     
-    if (uv.x > (1./2.*2.) + (1./3.*2.) + (1./4.*2.) + (1./5.*2.) + 10.000001)
+    if(x > 1./2. + 1./3.)
+      uv.x = x*4. - 2./2. - 1./3.;
+    else if(x > (1./2.))
     {
-      fragColor = vec4(1,0,0,1);
-      return;
-    }
-    else if (uv.x > (1./2.*2.) + (1./3.*2.) + f)
-    {
-      uv.x = x * 5. - (1. + .66 + f);
-    }
-    else if(uv.x > (1./2.*2.) + (1./3.))
-    {
-    
-      uv.x = x * 4. - 1.333;
-    }
-    else if(uv.x > (1./2.))
-    {
+    // {
     // fragColor = vec4(1,0,0,1);
     // return;
-      uv.x = x * 3.-0.5;
+      uv.x = x * 3 - 1./2.;
     }
     
     // Time varying pixel color
@@ -80,9 +69,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         col = vec3(1);
     }
     
-    if(x > (1./2.) + (1./3.) + (1./4.) + (1./5.) + (1./6./2.))
+    if(stroke(vec2(x*4.-1.-1./3., uv.y+.01)))
     {
-    col *= vec3(1,0,0);
+      col = vec3(0.5,10.,0);
+    }
+    
+    if(x > (1./2.) + (1./3.))
+    {
+    col *= vec3(1,0.1,0);
     }
     
     // Output to screen
