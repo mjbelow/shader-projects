@@ -59,11 +59,23 @@ show = false
 
 gh_imgui.init()
 
-combo_box_index = gh_imgui.combo_box_create("##combobox01")
-gh_imgui.combo_box_add_item(combo_box_index, "1/ AAAAAA")
-gh_imgui.combo_box_add_item(combo_box_index, "2/ BBBB")
-gh_imgui.combo_box_add_item(combo_box_index, "3/ CCCCCC")
-gh_imgui.combo_box_add_item(combo_box_index, "4/ DDDD")
+combo_box_index1 = gh_imgui.combo_box_create("Top Layer")
+gh_imgui.combo_box_add_item(combo_box_index1, "Layer 1")
+gh_imgui.combo_box_add_item(combo_box_index1, "Layer 2")
+gh_imgui.combo_box_add_item(combo_box_index1, "Layer 3")
+gh_imgui.combo_box_add_item(combo_box_index1, "Layer 4")
+
+combo_box_index2 = gh_imgui.combo_box_create("Transition Layer")
+gh_imgui.combo_box_add_item(combo_box_index2, "Layer 1")
+gh_imgui.combo_box_add_item(combo_box_index2, "Layer 2")
+gh_imgui.combo_box_add_item(combo_box_index2, "Layer 3")
+gh_imgui.combo_box_add_item(combo_box_index2, "Layer 4")
+
+combo_box_index3 = gh_imgui.combo_box_create("Bottom Layer")
+gh_imgui.combo_box_add_item(combo_box_index3, "Layer 1")
+gh_imgui.combo_box_add_item(combo_box_index3, "Layer 2")
+gh_imgui.combo_box_add_item(combo_box_index3, "Layer 3")
+gh_imgui.combo_box_add_item(combo_box_index3, "Layer 4")
 
 -- LEFT_BUTTON = 1
 -- mouse_left_button = gh_input.mouse_get_button_state(LEFT_BUTTON) 

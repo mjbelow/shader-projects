@@ -45,6 +45,10 @@ uniform float blue_dark_bottom_2;
 uniform float blue_light_bottom_1;
 uniform float blue_light_bottom_2;
 
+uniform int top_layer_option;
+uniform int bottom_layer_option;
+uniform int transition_layer_option;
+
 #define S(a, b, c) smoothstep(a, b, c)
 // #define SL(a, b, c) smoothstep(1.-a, 1.-b, c)
 // #define S(a, b, c) step(a,c)
@@ -66,15 +70,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Output to screen
     fragColor = texture(iChannel1, uv);
     
-    vec4 layers[];
+    vec4 layers[4];
     layers[0] = texture(iChannel0, uv);
     layers[1] = texture(iChannel1, uv);
     layers[2] = texture(iChannel2, uv);
-    
-    
-    vec4 top_layer = layers[0];
-    vec4 bottom_layer = layers[1];
-    bottom_layer = vec4(uv.x,0,0,1);
+    layers[3] = vec4(uv.x,0,0,1);
+
+
+    vec4 top_layer = layers[top_layer_option];
+    vec4 bottom_layer = layers[bottom_layer_option];
+    vec4 transition_layer = layers[transition_layer_option];
     
     // channels
     vec3 rgb_ratio = vec3(0.299 , 0.587 , 0.114);
@@ -104,7 +109,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     top_mix = mix(1., top_mix, S(blue_dark_top_1 - EPSILON, max(blue_dark_top_1,blue_dark_top_2), top_blue));
     top_mix = mix(top_mix, 1., S(min(blue_light_top_1,blue_light_top_2) - EPSILON, blue_light_top_1, top_blue));
 
-    fragColor = mix(top_layer, layers[2], top_mix);
+    fragColor = mix(top_layer, transition_layer, top_mix);
     
     float bottom_mix = 1.;
 
@@ -118,8 +123,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     bottom_mix = mix(bottom_mix, 0., S(min(blue_light_bottom_1,blue_light_bottom_2) - EPSILON, blue_light_bottom_1, bottom_blue));
     
     // fragColor = vec4(bottom_mix);
-    fragColor = mix(layers[2], fragColor, bottom_mix);
+    fragColor = mix(transition_layer, fragColor, bottom_mix);
 
+    // if(t == top_layer_option)
+      // fragColor = vec4(0,1,0,1);
     // fragColor = vec4(gray_light_top_1,0,0,1);
 }
 

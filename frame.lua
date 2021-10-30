@@ -145,15 +145,17 @@ blue_light_top_2 = gh_imgui.slider_1f("blue_light_top_2", blue_light_top_2, min_
 
 imgui_window_end()
 
+imgui_window_begin_v1("Mix", 500, 500, 500, 0)
+
+
+	top_layer_option = gh_imgui.combo_box_draw(combo_box_index1, 0)
+	bottom_layer_option = gh_imgui.combo_box_draw(combo_box_index2, 1)
+	transition_layer_option = gh_imgui.combo_box_draw(combo_box_index3, 2)
+
+
+imgui_window_end()
+
 imgui_window_begin_v1("Bottom Layer", 500, 500, 500, 0)
-
-	local initial_selected_item = 1;
-	local selected_item = gh_imgui.combo_box_draw(combo_box_index, initial_selected_item)
-	gh_imgui.text("Combobox - selected_item = " .. selected_item + 1)
-
-	selected_item = gh_imgui.list_box_draw(combo_box_index, initial_selected_item)
-	gh_imgui.text("Listbox - selected_item = " .. selected_item + 1)
-
 
 gh_imgui.text("gray")
 
@@ -216,6 +218,10 @@ imgui_window_end()
 
 gh_imgui.frame_end()
 
+
+gh_gpu_program.uniform1i(gpu_prog_01, "top_layer_option", top_layer_option)
+gh_gpu_program.uniform1i(gpu_prog_01, "bottom_layer_option", bottom_layer_option)
+gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", transition_layer_option)
 
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_1", gray_dark_top_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_2", gray_dark_top_2)
