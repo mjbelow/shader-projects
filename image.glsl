@@ -115,7 +115,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     layers[0] = texture(iChannel0, uv).rgb;
     layers[1] = texture(iChannel1, uv).rgb;
     layers[2] = texture(iChannel2, uv).rgb;
-    layers[3] = vec3(uv.x,0,0);
+    layers[3] = vec3(uv.x);
     layers[4] = vec3(atan(uv2.x,uv2.y)/TAU+.5);
     layers[5] = vec3(length(uv2));
 
