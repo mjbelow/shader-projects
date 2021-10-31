@@ -45,6 +45,10 @@ uniform float blue_dark_bottom_2;
 uniform float blue_light_bottom_1;
 uniform float blue_light_bottom_2;
 
+uniform vec3 layer_1_channels;
+uniform vec3 layer_2_channels;
+uniform vec3 layer_3_channels;
+
 uniform int top_layer_option;
 uniform int bottom_layer_option;
 uniform int transition_layer_option;
@@ -120,9 +124,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     layers[5] = vec3(length(uv2));
 
 
-    vec3 top_layer = layers[top_layer_option];
-    vec3 bottom_layer = layers[bottom_layer_option];
-    vec3 transition_layer = layers[transition_layer_option];
+    vec3 top_layer = layers[top_layer_option] * layer_1_channels;
+    vec3 bottom_layer = layers[bottom_layer_option] * layer_2_channels;
+    vec3 transition_layer = layers[transition_layer_option] * layer_3_channels;
 
     
     float top_gray = dot(top_layer.rgb, rgb_ratio);

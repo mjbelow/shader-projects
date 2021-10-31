@@ -19,8 +19,25 @@ local gen_mipmaps = 0
 winW, winH = gh_window.getsize()
 mouse_wheel = 0
 g_radio_button1_active = 1
+
+g_checkbox_layer1_rainbow = 0
+g_checkbox_layer1_r = 1
+g_checkbox_layer1_g = 1
+g_checkbox_layer1_b = 1
+
 g_radio_button2_active = 0
+
+g_checkbox_layer2_rainbow = 0
+g_checkbox_layer2_r = 1
+g_checkbox_layer2_g = 1
+g_checkbox_layer2_b = 1
+
 g_radio_button3_active = 0
+
+g_checkbox_layer3_rainbow = 0
+g_checkbox_layer3_r = 1
+g_checkbox_layer3_g = 1
+g_checkbox_layer3_b = 1
 
 gray_dark_top_1 = 0
 gray_dark_top_2 = 0

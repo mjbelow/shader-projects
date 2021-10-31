@@ -136,10 +136,38 @@ imgui_window_end()
 
 imgui_window_begin_v1("Mix", 500, 500, 500, 0)
 
-
+  -- top layer
 	top_layer_option = gh_imgui.combo_box_draw(combo_box_index1, 0)
+  
+  g_checkbox_layer1_rainbow = gh_imgui.checkbox("Rainbow ##layer1_rainbow", g_checkbox_layer1_rainbow);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer1_r = gh_imgui.checkbox("R ##layer1_r", g_checkbox_layer1_r);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer1_g = gh_imgui.checkbox("G ##layer1_g", g_checkbox_layer1_g);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer1_b = gh_imgui.checkbox("B ##layer1_b", g_checkbox_layer1_b);
+  
+  -- bottom layer
 	bottom_layer_option = gh_imgui.combo_box_draw(combo_box_index2, 1)
+  
+  g_checkbox_layer2_rainbow = gh_imgui.checkbox("Rainbow ##layer2_rainbow", g_checkbox_layer2_rainbow);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer2_r = gh_imgui.checkbox("R ##layer2_r", g_checkbox_layer2_r);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer2_g = gh_imgui.checkbox("G ##layer2_g", g_checkbox_layer2_g);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer2_b = gh_imgui.checkbox("B ##layer2_b", g_checkbox_layer2_b);
+
+  -- transition layer
 	transition_layer_option = gh_imgui.combo_box_draw(combo_box_index3, 2)
+  
+  g_checkbox_layer3_rainbow = gh_imgui.checkbox("Rainbow ##layer3_rainbow", g_checkbox_layer3_rainbow);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer3_r = gh_imgui.checkbox("R ##layer3_r", g_checkbox_layer3_r);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer3_g = gh_imgui.checkbox("G ##layer3_g", g_checkbox_layer3_g);
+  gh_imgui.same_line(0, 0);
+  g_checkbox_layer3_b = gh_imgui.checkbox("B ##layer3_b", g_checkbox_layer3_b);
 
 
 	gh_imgui.text("\n\nBlend Top and Bottom Layer to... ")
@@ -250,3 +278,7 @@ gh_gpu_program.uniform1f(gpu_prog_01, "blue_dark_bottom_1", blue_dark_bottom_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "blue_dark_bottom_2", blue_dark_bottom_2)
 gh_gpu_program.uniform1f(gpu_prog_01, "blue_light_bottom_1", blue_light_bottom_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "blue_light_bottom_2", blue_light_bottom_2)
+
+gh_gpu_program.uniform3f(gpu_prog_01, "layer_1_channels", g_checkbox_layer1_r, g_checkbox_layer1_g, g_checkbox_layer1_b)
+gh_gpu_program.uniform3f(gpu_prog_01, "layer_2_channels", g_checkbox_layer2_r, g_checkbox_layer2_g, g_checkbox_layer2_b)
+gh_gpu_program.uniform3f(gpu_prog_01, "layer_3_channels", g_checkbox_layer3_r, g_checkbox_layer3_g, g_checkbox_layer3_b)
