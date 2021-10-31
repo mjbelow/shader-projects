@@ -228,14 +228,7 @@ end
 gh_imgui.frame_end()
 
 
-gh_gpu_program.uniform1i(gpu_prog_01, "top_layer_option", top_layer_option)
-gh_gpu_program.uniform1i(gpu_prog_01, "bottom_layer_option", bottom_layer_option)
 
-if(g_radio_button1_active == 1) then
-  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", bottom_layer_option)
-else
-  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", transition_layer_option)
-end
 
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_1", gray_dark_top_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "gray_dark_top_2", gray_dark_top_2)
@@ -279,6 +272,22 @@ gh_gpu_program.uniform1f(gpu_prog_01, "blue_dark_bottom_2", blue_dark_bottom_2)
 gh_gpu_program.uniform1f(gpu_prog_01, "blue_light_bottom_1", blue_light_bottom_1)
 gh_gpu_program.uniform1f(gpu_prog_01, "blue_light_bottom_2", blue_light_bottom_2)
 
+gh_gpu_program.uniform1i(gpu_prog_01, "top_layer_option", top_layer_option)
+gh_gpu_program.uniform1i(gpu_prog_01, "bottom_layer_option", bottom_layer_option)
+
 gh_gpu_program.uniform3f(gpu_prog_01, "layer_1_channels", g_checkbox_layer1_r, g_checkbox_layer1_g, g_checkbox_layer1_b)
 gh_gpu_program.uniform3f(gpu_prog_01, "layer_2_channels", g_checkbox_layer2_r, g_checkbox_layer2_g, g_checkbox_layer2_b)
-gh_gpu_program.uniform3f(gpu_prog_01, "layer_3_channels", g_checkbox_layer3_r, g_checkbox_layer3_g, g_checkbox_layer3_b)
+
+gh_gpu_program.uniform1i(gpu_prog_01, "layer_1_rainbow", g_checkbox_layer1_rainbow)
+gh_gpu_program.uniform1i(gpu_prog_01, "layer_2_rainbow", g_checkbox_layer2_rainbow)
+
+if(g_radio_button1_active == 1) then
+  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", bottom_layer_option)
+  gh_gpu_program.uniform3f(gpu_prog_01, "layer_3_channels", g_checkbox_layer2_r, g_checkbox_layer2_g, g_checkbox_layer2_b)
+  gh_gpu_program.uniform1i(gpu_prog_01, "layer_3_rainbow", g_checkbox_layer2_rainbow)
+else
+  gh_gpu_program.uniform1i(gpu_prog_01, "transition_layer_option", transition_layer_option)
+  gh_gpu_program.uniform3f(gpu_prog_01, "layer_3_channels", g_checkbox_layer3_r, g_checkbox_layer3_g, g_checkbox_layer3_b)
+  gh_gpu_program.uniform1i(gpu_prog_01, "layer_3_rainbow", g_checkbox_layer3_rainbow)
+end
+
