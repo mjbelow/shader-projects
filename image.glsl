@@ -107,19 +107,21 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
     vec2 uv = fragCoord/iResolution.xy;
+    vec2 uv2 = (fragCoord*2.-iResolution.xy)/iResolution.xy;
 
     vec3 col;
     
-    vec4 layers[4];
-    layers[0] = texture(iChannel0, uv);
-    layers[1] = texture(iChannel1, uv);
-    layers[2] = texture(iChannel2, uv);
-    layers[3] = vec4(uv.x,0,0,1);
+    vec3 layers[5];
+    layers[0] = texture(iChannel0, uv).rgb;
+    layers[1] = texture(iChannel1, uv).rgb;
+    layers[2] = texture(iChannel2, uv).rgb;
+    layers[3] = vec3(uv.x,0,0);
+    layers[4] = vec3(atan(uv2.x,uv2.y)/TAU+.5);
 
 
-    vec3 top_layer = layers[top_layer_option].rgb;
-    vec3 bottom_layer = layers[bottom_layer_option].rgb;
-    vec3 transition_layer = layers[transition_layer_option].rgb;
+    vec3 top_layer = layers[top_layer_option];
+    vec3 bottom_layer = layers[bottom_layer_option];
+    vec3 transition_layer = layers[transition_layer_option];
 
     
     float top_gray = dot(top_layer.rgb, rgb_ratio);
