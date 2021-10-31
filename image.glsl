@@ -107,16 +107,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
     vec2 uv = fragCoord/iResolution.xy;
-    vec2 uv2 = (fragCoord*2.-iResolution.xy)/iResolution.xy;
+    vec2 uv2 = (fragCoord*1.-.5*iResolution.xy)/iResolution.xy;
 
     vec3 col;
     
-    vec3 layers[5];
+    vec3 layers[6];
     layers[0] = texture(iChannel0, uv).rgb;
     layers[1] = texture(iChannel1, uv).rgb;
     layers[2] = texture(iChannel2, uv).rgb;
     layers[3] = vec3(uv.x,0,0);
     layers[4] = vec3(atan(uv2.x,uv2.y)/TAU+.5);
+    layers[5] = vec3(length(uv2));
 
 
     vec3 top_layer = layers[top_layer_option];
