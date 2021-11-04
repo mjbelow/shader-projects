@@ -47,6 +47,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //fragCoord.x = iResolution.x - fragCoord.x;
     
     vec2 uv = (fragCoord*2.-iResolution.xy)/iResolution.xy*vec2(TAU*2.,TAU);
+    vec2 uv2 = fragCoord/iResolution.xy;
     //uv.x = (fragCoord.x*2.-1.*iResolution.x)/iResolution.x*TAU;
     //uv.y = (fragCoord.y*2.-1.*iResolution.y)/iResolution.y*TAU;
 
@@ -59,11 +60,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float v = sin(iTime*.5)*PI;
     
     float uv_angle = (uv.x+uv.y*f_dash(v));
+    float perpendicular_slope = f_dash(v);
+//    perpendicular_slope = -1. / f_dash(v);
+    float perpendicular_angle = atan(perpendicular_slope);
+    float f2 = (uv2.x*cos(perpendicular_angle)+uv2.y*sin(perpendicular_angle))/2.;
     //if(sin(uv.x*TAU)*.5+.5 > uv.y)
     if(
     stroke(f(uv.x),uv.y, .2)
     ||
-    (stroke(f_dash(v)*(uv.x-v)+f(v),uv.y, .1) && mod(uv_angle,1.) < .5)
+    (stroke(f_dash(v)*(uv.x-v)+f(v),uv.y, .1) && mod(f2,.05) < .025)
     ||
     stroke(0.,uv.y, .05)
     ||
