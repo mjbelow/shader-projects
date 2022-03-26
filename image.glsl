@@ -129,9 +129,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	// ) * uv;
 	
 	uv = mat2(
-	1, cos(theta)*4,
-	0, sin(theta)*4
+	1, cos(theta)*1,
+	0, sin(theta)*1
 	) * uv;
+	
+	uv *= 16.;
     
     fragColor = texture(iChannel0, uv);
 	
@@ -151,16 +153,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     float grid = step(2.,mod(fragCoord.y/width,spacing/width)) * step(2.,mod(fragCoord.x/width,spacing/width));
     float grid2 = step(1.,mod(fragCoord.y/width+1.,spacing/width)) * step(1.,mod(fragCoord.x/width-1.,spacing/width));
-    fragColor = vec4(.25) * vec4(grid);
+    // fragColor = vec4(.25) * vec4(grid);
     // if(grid2 < 1.)
         // fragColor = screen(fragColor, vec4(.25));
 
 	float sdfGrid = max(gradient_map_rainbow(uv.x),gradient_map_rainbow(uv.y));
 	
-	fragColor = vec4(0);
+	// fragColor = vec4(0);
 	
-	if(sdfGrid > .95)
-		fragColor = vec4(1);
+	// if(sdfGrid > .95)
+		// fragColor = vec4(1);
 	// fragColor.rgb = vec3(sdfGrid);
 }
 
