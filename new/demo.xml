@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+
+
+<glsl_hacker>	
+
+  <window name="win3d01" title="Shadertoy demo" 
+          width="1280" height="720"
+          gl_version_major="3" gl_version_minor="2" />
+
+
+          
+          
+<gpu_program name="rt_viewer" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="../_common/_ps_gl3_rt_viewer.glsl" 
+             />
+
+<gpu_program name="rt_clear" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="../_common/_ps_gl3_rt_clear.glsl" 
+             />
+
+<gpu_program name="shadertoy_prog_buf_a" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="ps-gl32-buf_A.glsl" livecoding_ps="1"
+             />
+
+<gpu_program name="shadertoy_prog_buf_b" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="ps-gl32-buf_B.glsl" livecoding_ps="1"
+             />
+
+<gpu_program name="shadertoy_prog_buf_c" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="ps-gl32-buf_C.glsl" livecoding_ps="1"
+             />
+
+
+<gpu_program name="shadertoy_prog_img" 
+             filename_vs="../_common/_vs_gl3.glsl" 
+             filename_ps="ps-gl32-img.glsl" livecoding_ps="1"
+             />
+
+             
+             
+             
+             
+<script name="init_begin" run_mode="INIT" filename="../_common/_init_begin_v2.lua" />		
+<script name="init_user" run_mode="INIT" filename="./init_user.lua" />		
+<script name="shadertoy_demo_info" run_mode="INIT" filename="./shadertoy_demo_info.lua" />		
+<script name="init_end" run_mode="INIT" filename="../_common/_init_end.lua" />		
+
+
+<script name="frame_begin" run_mode="FRAME" filename="../_common/_frame_begin.lua" />		
+<script name="frame_user" run_mode="FRAME" filename="./frame_user.lua" livecoding="1" />		
+<script name="frame_end" run_mode="FRAME" filename="../_common/_frame_end.lua" />		
+<script name="frame_user_gui" run_mode="FRAME" filename="./gui.lua" livecoding="1" />
+<script name="frame_gui" run_mode="FRAME" filename="../_common/_gui.lua" />
+<script name="frame_user_end" run_mode="FRAME" filename="./frame_end_user.lua" />
+
+
+
+<script name="terminate_scene" run_mode="TERMINATE" filename="../_common/_terminate.lua" />
+<script name="terminate_scene_user" run_mode="TERMINATE" filename="./terminate_user.lua" />
+<script name="resize_scene" run_mode="SIZE" filename="../_common/_resize.lua" />
+
+
+</glsl_hacker>
