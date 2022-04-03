@@ -1,6 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <glsl_hacker>
-  <gpu_program name="gpu_program01" filename_ps="image.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="gpu_prog_buf_a" filename_ps="buf_a.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="gpu_prog_buf_b" filename_ps="buf_b.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="gpu_prog_buf_c" filename_ps="buf_c.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="gpu_prog_buf_d" filename_ps="buf_d.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="gpu_prog_img" filename_ps="image.glsl" livecoding_from_file_ps="1" />
+  <gpu_program name="rt_clear" filename_vs="_common/_vs_gl3.glsl" filename_ps="_common/_ps_gl3_rt_clear.glsl" />
   <script name="init_scene" run_mode="INIT" filename="init.lua" />
   <script name="update_scene" run_mode="FRAME" filename="frame.lua" />
   <script name="resize_scene" run_mode="SIZE">
@@ -14,4 +19,5 @@
         gh_mesh.update_quad_size(fullscreen_quad, winW, winH)
         ]]></raw_data>
   </script>
+<script name="resize_scene" run_mode="SIZE" filename="_common/_resize.lua" />
 </glsl_hacker>

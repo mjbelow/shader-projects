@@ -255,8 +255,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     
     fragColor = softLight(fragColor, vec4(vec3(d),1.));
-    // fragColor = mix(fragColor, tex, .5);
-	fragColor = texture(iChannel8, fragCoord/iResolution.xy);
+
+    vec2 uv = fragCoord/iResolution.xy;
+    uv = uv.yx * vec2(1., 2.);
+    if ((min(uv.x,uv.y) > 0.) && (max(uv.x,uv.y) < 1.))
+		fragColor = texture(iChannel8, uv);
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
