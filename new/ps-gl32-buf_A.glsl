@@ -11,6 +11,7 @@ uniform sampler2D iChannel0;
 
 float sdBox( in vec2 p, in vec2 b )
 {
+// return length(p) - b.x;
     vec2 d = abs(p)-b;
     return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
 }
@@ -45,18 +46,21 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         float d = sdBox(uv2, vec2(.05));
         //d = length(uv2) - .1;
         
-        vec4 bg = vec4(0, .5, 1, 1);
-        vec4 fg = vec4(1) - bg;
+        // vec4 bg = vec4(0, .5, 1, 1);
+        // vec4 fg = vec4(1) - bg;
         
-        r = min(r, step(0., d));
+        // r = min(r, step(0., d));
         // r = max(r, 1.-step(0., d));
         
-        vec4 fColor2 = vec4(r);
+        // vec4 fColor2 = vec4(r);
         
-        fragColor = mix(bg, fg, r);
+        // fragColor = mix(bg, fg, r);
         
-        fragColor.a = r;
-
+        // fragColor.a = r;
+		
+		// if(d < 0.)
+			// fragColor = vec4(1,1,1,1);
+		fragColor = mix(fragColor, vec4(0,.5,1,1), smoothstep(.01,-.0, d));
     }
 }
 
