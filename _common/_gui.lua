@@ -8,9 +8,9 @@ if (display_info == 1) then
   gh_imgui.set_color(IMGUI_WINDOW_BG_COLOR, 0.1, 0.1, 0.1, 0.8)
 
   local is_open = imgui_window_begin_pos_size_always("Control panel", 320, winH, 0, 0)
+  is_gui_hovered = imgui_is_hovered()
   if (is_open == 1) then
 
-    is_gui_hovered = imgui_is_hovered()
 
         
     if (gh_imgui.button("Demo @ Shadertoy", 160, 24) == 1) then
