@@ -136,12 +136,12 @@ float y = uv.y;
 	0, 1
 	) * uv;
 	
-	uv *= 32.;
+	uv *= 16.;
 
     uv = mod(uv, 1.);
 
     fragColor = texture(iChannel0, uv);
-    fragColor = vec4(uv.x, uv.y, 0, 1);
+    fragColor = vec4(1.-smoothstep(0,.5,min(uv.x, uv.y)));
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
