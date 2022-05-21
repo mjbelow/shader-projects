@@ -132,8 +132,8 @@ float x = uv.x;
 float y = uv.y;
 
 	uv = mat2(
-	1, sin(iTime + uv.x),
-	0, 1
+	1, x,
+	atan(y, x), y
 	) * uv;
 	
 	uv *= 16.;
@@ -141,7 +141,7 @@ float y = uv.y;
     uv = mod(uv, 1.);
 
     fragColor = texture(iChannel0, uv);
-    fragColor = vec4(1.-smoothstep(0,.5,min(uv.x, uv.y)));
+    fragColor = vec4(1.-smoothstep(0.5,.5,uv.y));
 }
 
 void main( void ){vec4 color = vec4(0.0,0.0,0.0,1.0); mainImage(color, gl_FragCoord.xy);color.w = 1.0;FragColor = color;}
