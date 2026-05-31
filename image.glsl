@@ -110,6 +110,21 @@ vec3 gradient_map_rainbow(vec3 col)
 #define TAU (PI * 2.)
 #define texture(a, b) texture(a, vec2(b.x, 1. - b.y))
 
+#define MAX_LEVEL 4
+
+float GetBayerFromCoordLevel(vec2 pixelpos)
+{
+    ivec2 ppos = ivec2(pixelpos);
+    int sum = 0;
+    for(int i = 0; i<MAX_LEVEL; i++)
+    {
+         ivec2 t = ppos & 1;
+         sum = sum * 4 | (t.x ^ t.y) * 2 | t.x;
+         ppos /= 2;
+    }    
+    return float(sum) / float(1 << (2 * MAX_LEVEL));
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalized pixel coordinates (from 0 to 1)
@@ -118,13 +133,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec3 col;
     
-    vec3 layers[6];
+    vec3 layers[7];
     layers[0] = texture(iChannel0, uv).rgb;
     layers[1] = texture(iChannel1, uv).rgb;
     layers[2] = texture(iChannel2, uv).rgb;
     layers[3] = vec3(uv.x);
     layers[4] = vec3(atan(uv2.x,uv2.y)/TAU+.5);
     layers[5] = vec3(length(uv2));
+    layers[6] = vec3(GetBayerFromCoordLevel(fragCoord));
 
 
     vec3 top_layer = layers[top_layer_option] * layer_1_channels;

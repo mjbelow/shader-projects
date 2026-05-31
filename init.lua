@@ -84,6 +84,7 @@ gh_imgui.combo_box_add_item(combo_box_index1, "Layer 3")
 gh_imgui.combo_box_add_item(combo_box_index1, "Layer 4")
 gh_imgui.combo_box_add_item(combo_box_index1, "Layer 5")
 gh_imgui.combo_box_add_item(combo_box_index1, "Layer 6")
+gh_imgui.combo_box_add_item(combo_box_index1, "Layer 7")
 
 combo_box_index2 = gh_imgui.combo_box_create("Bottom Layer")
 gh_imgui.combo_box_add_item(combo_box_index2, "Layer 1")
@@ -92,6 +93,7 @@ gh_imgui.combo_box_add_item(combo_box_index2, "Layer 3")
 gh_imgui.combo_box_add_item(combo_box_index2, "Layer 4")
 gh_imgui.combo_box_add_item(combo_box_index2, "Layer 5")
 gh_imgui.combo_box_add_item(combo_box_index2, "Layer 6")
+gh_imgui.combo_box_add_item(combo_box_index2, "Layer 7")
 
 combo_box_index3 = gh_imgui.combo_box_create("Transition Layer")
 gh_imgui.combo_box_add_item(combo_box_index3, "Layer 1")
@@ -100,6 +102,7 @@ gh_imgui.combo_box_add_item(combo_box_index3, "Layer 3")
 gh_imgui.combo_box_add_item(combo_box_index3, "Layer 4")
 gh_imgui.combo_box_add_item(combo_box_index3, "Layer 5")
 gh_imgui.combo_box_add_item(combo_box_index3, "Layer 6")
+gh_imgui.combo_box_add_item(combo_box_index3, "Layer 7")
 
 -- LEFT_BUTTON = 1
 -- mouse_left_button = gh_input.mouse_get_button_state(LEFT_BUTTON) 
